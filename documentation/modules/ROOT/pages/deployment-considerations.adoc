@@ -1,0 +1,118 @@
+= Deployment Considerations
+include::_attributes.adoc[]
+:profile: 5g-ran-lab
+
+A RAN deployment requires of multiple pieces of the stack being properly configured. In this section, we will present the most common ones.
+
+[#hardware-configurations]
+== Hardware configurations
+
+RAN deployments usually run on top of bare metal servers, and as such, is of vital importance to have a proper configuration at the hardware level to meet the required expectations of the RAN workloads.
+
+[#bios-settings]
+=== BIOS Settings
+
+NOTE: Depending on your hardware vendor the naming of the following features may vary.
+
+* HyperTransport `Enabled`.
+* UEFI `Enabled`.
+* CPU Power and Performance Policy must be set to `Performance`.
+* Uncore Frequency Scaling `Disabled`.
+* Uncore Frequency `maximum`.
+* Performance P-limit `Disabled`.
+* Enhanced Intel(r) SpeedStep Tech `Enabled`.
+* Intel(r) Turbo Boost Technology `Enabled`.
+* Intel(r) Configurable TDP `Enabled`.
+* Configurable TDP Level `Level 2`.
+* Energy Efficient Turbo `Disabled`.
+* Hardware P-States `Enabled` or `Disabled`. Enable P-state to allow power saving. Disable to optimize for performance.
+* Package C-State `C0/C1 state`.
+* C1E `Disabled`.
+* Processor C6 `Disabled`.
+* Sub-NUMA Clustering `Disabled`.
+* SR-IOV and VT-D must be set to `Enabled`.
+* Storage should be configured with a `RAID1` at least.
+
+{reference-documentation}[Reference {openshift-release} documentation]
+
+[#networking]
+== Networking
+
+IPv4 and IPv6 are both supported for RAN deployments, when using IPv6 only disconnected mode will be supported. 
+
+You can have different networks for your different DUs, but keep in mind that these networks need to have connectivity to the network where the RHACM Hub is running.
+
+When using IPv6, SLAAC addressing is discouraged.
+
+[#disconnected-environments]
+== Disconnected Environments
+
+We define as _disconnected_ environment, an environment where there is no direct connectivity to the Internet.
+
+There are two kinds of disconnected environments that we have identified.
+
+[#connected-proxy]
+=== Connected through proxy
+
+Connected through proxy environments do not require extra infrastructure components to complete the installation since the proxy will provide access to the Internet and the installer will be able to grab all the required bits. If we want to speed up the installation or consume artifacts local to the environment we are installing we can deploy the infrastructure components described in the section below.
+
+[#fully-disconnected]
+=== Fully disconnected
+
+When there is no connection to the Internet we need to mirror the required artifacts to run an OpenShift installation in our infrastructure. The required infrastructure components will be:
+
+* HTTP Server to store RHCOS artifacts (images, rootfs, etc).
+* Container Registry to store OCP and OLM images.
+
+In a future section we will cover the deployment and mirroring of the required bits.
+
+[#git-repo-structure]
+== Git Repository Structure
+
+When preparing a Git repository for running ZTP deployments we identified two potential ways of structuring the repository for GitOps: using branches or using folders. At this point, we can say that while branches have been used for structuring the different environments in the past, today, the preferred approach is using folders.
+
+In our Git repository we will have the following folder structure:
+
+[console-input]
+[source,console,subs="attributes+,+macros"]  
+----
+
+.
+├── site-configs
+│   ├── hub-1
+│   │   └── pre-reqs
+│   │       └── sno-abi
+│   ├── ...
+│   ├── hub-n
+│   └── resources
+└── site-policies
+    ├── fleet
+    │   ├── active
+    │   │   ├── common.yaml
+    │   │   └── group.yaml
+    │   ├── testing
+    │   │   ├── common.yaml
+    │   │   └── group.yaml
+    │   └── resources
+    │       └── ns.yaml
+    └── sites
+        └── hub-1
+        └── ...
+        └── hub-n
+----
+
+We know that a hub cluster can manage thousands of spoke clusters. This Git structure helps us to scale easily the number of hub clusters that we are managing. In the lab, as we can see in the previous figure, only a managed cluster (SNO-ABI) is managed by one hub cluster (hub-1). This structure makes much easier knowing which clusters are being managed by each hub and simplifies the subscriptions needed on each hub cluster.
+
+* `site-configs`: This folder is used to store the different SiteConfigs describing the environments we will deploy through ZTP.
+** `hub-1`: This folder contains all the provisioning configuration (siteConfig) for each cluster that is managed by the hub cluster called hub-1.  Notice that multiple hub clusters (hub-n) folders can be created and under each folder a siteConfig definition of a cluster managed by the hub is stored. The organization of files under the hub-n directory is up to the user. SiteConfig and pre-req (pull secrets, bmc credentials, etc) can be grouped into sub-directories if/as needed.
+** `pre-reqs`: This folder is used to store the different configurations that are required for the deployment of the environments, things like: pull secrets, bmc credentials, etc.
+
+* `site-policies`: This folder has different sub-folders storing different sets of PolicyGenTemplates. The naming of the sub-folders is flexible and should reflect meaningful "sets" of configuration for the fleet of clusters.
+** `fleet`: This folder contains all configuration that applies to more than one cluster for all the different environments.
+*** `active`: This folder is used to store PolicyGenTemplates that apply to all clusters in the active environment.
+*** `testing`:  This folder is used to store PolicyGenTemplates that apply to all clusters in the testing environment.
+** `sites`: This folder is used to store PolicyGenTemplates that specifically apply only to a cluster.
+** `hub-1`: This folder is used to store PolicyGenTemplates that specifically apply only to a cluster managed by a particular hub. Notice that multiple hub clusters (hub-n) folders can be created and under each folder a specific configuration of a cluster managed by the hub is stored.
+Note that instead of using "active" and "testing" these directories may represent multiple versions of a customer's solution, with half the fleet bound to version-A and the other half bound to version-B.
+
+A remarkable point with this new structure is that creating new environments and moving one or multiple clusters from one to another is very simple. In case of creating a new environment, we just need to copy the proper folder (active or testing) under the fleet folder to a new one, for instance, called qe. Then, we apply the desired changes to qe and select our managed cluster to be configured as a qe environment. This is done by adjusting the cluster or siteConfig cluster labels, concretely, one called `logicalGroup`.

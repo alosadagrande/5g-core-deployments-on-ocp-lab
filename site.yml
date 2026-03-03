@@ -1,0 +1,35 @@
+runtime:
+  cache_dir: ./.cache/antora
+
+site:
+  title: LAB - 5G CORE RDS Deployments on OpenShift
+  url: https://labs.sysdeseng.com/
+  start_page: 5g-core-deployments-on-ocp-lab::index.adoc
+
+content:
+  sources:
+    - url: ./
+      branches:
+      - 'main'
+      start_path: documentation
+
+asciidoc:
+  attributes:
+    release-version: "4.20"
+    page-pagination: true
+    demo_environment: demo_environment_here
+  extensions:
+    - ./lib/tab-block.js
+    - ./lib/remote-include-processor.js
+
+ui:
+  bundle:
+#    url: https://github.com/redhat-developer-demos/rhd-tutorial-ui/releases/download/v0.1.9/ui-bundle.zip
+    url: ./ui-bundle-telco.zip
+    # UI Repo: https://github.com/RHsyseng/rht-tutorial-ui/tree/latest-antora
+    # In order to build: gulp bundle
+    snapshot: true
+  supplemental_files: ./supplemental-ui
+
+output:
+  dir: ./gh-pages

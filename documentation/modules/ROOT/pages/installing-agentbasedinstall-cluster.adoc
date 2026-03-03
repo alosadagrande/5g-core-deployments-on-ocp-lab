@@ -1,0 +1,504 @@
+= Deploying an Agent Based Install Cluster
+include::_attributes.adoc[]
+:profile: 5g-ran-lab
+
+[#introduction]
+== Introduction
+
+As detailed in the link:ztp-workflow.html#abi-deployment[Agent Based Installation] section, this installation method combines the ease of use of the Assisted Installation service with the ability to run offline. It also optionally generates or accepts link:ztp-intro.html[Zero Touch Provisioning] (ZTP) custom resources. In this part of the lab, we will:
+
+* Create the prerequisites for the SNO cluster installation.
+* Define the SNO cluster as a `ClusterInstance` CR.
+* Include any extra configuration required for our telco 5G RAN-specific use case.
+* Commit all manifests into the `ztp-repository` Git repo, where the link:ztp-intro.html[OpenShift GitOps] operator automatically applies the changes.
+
+[#baremetal-node-details]
+== Bare Metal Node Details
+
+The details for our bare-metal node, which we want to provision as SNO ABI, are as follows:
+
+* RedFish Endpoint: `redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/sno-abi`
+* MAC Address: `aa:aa:aa:aa:03:01`
+* Primary disk: `/dev/vda`
+* BMC User: `admin`
+* BMC Password: `admin`
+
+[#pre-reqs]
+== Deployment Prerequisites
+
+Before working on the ClusterInstance, let's add some information required for the deployment into the Git repository.
+
+CAUTION: In a production environment, you should not add sensitive information in plain text to your Git repository. For simplicity in this lab, we are adding this information in plain text so you don't have to manage it. This applies to items like pull secrets or BMC credentials.
+
+1. BMC credentials file.
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/pre-reqs/sno-abi/bmc-credentials.yaml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sno-abi-bmc-credentials
+  namespace: sno-abi
+data:
+  username: "YWRtaW4="
+  password: "YWRtaW4="
+type: Opaque
+EOF
+-----
++
+2. Pull secret for accessing the disconnected registry.
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/pre-reqs/sno-abi/pull-secret.yaml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: disconnected-registry-pull-secret
+  namespace: sno-abi
+stringData:
+  .dockerconfigjson: '{"auths":{"infra.5g-deployment.lab:8443":{"auth":"YWRtaW46cjNkaDR0MSE="}}}'
+type: kubernetes.io/dockerconfigjson
+EOF
+-----
++
+3. Namespace for the SNO ABI cluster.
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/pre-reqs/sno-abi/ns.yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sno-abi
+EOF
+-----
+
+4. Kustomization file for the SNO ABI pre-reqs.
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/pre-reqs/sno-abi/kustomization.yaml
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - bmc-credentials.yaml
+  - pull-secret.yaml
+  - ns.yaml
+EOF
+-----
++
+5. Kustomization file for the clusters pre-reqs.
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/pre-reqs/kustomization.yaml
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - sno-abi/
+EOF
+-----
+
+[#clusterinstance]
+== ClusterInstance
+
+Now that we have the pre-reqs, let's jump into the ClusterInstance.
+
+Copy the command below and refer to the comments in the code for explanations.
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+cat << 'EOF' > ~/5g-deployment-lab/ztp-repository/site-configs/hub-1/ocp-sno-abi.yaml
+---
+apiVersion: siteconfig.open-cluster-management.io/v1alpha1
+kind: ClusterInstance
+metadata:
+  name: "ocp-sno-abi"
+  namespace: "sno-abi"
+spec:
+  additionalNTPSources:
+    - "clock.corp.redhat.com"
+  baseDomain: "5g-deployment.lab"
+  clusterImageSetNameRef: "active-ocp-version"
+  clusterName: "sno-abi"
+  clusterNetwork:
+    - cidr: "10.128.0.0/14"
+      hostPrefix: 23
+  cpuPartitioningMode: AllNodes
+  extraLabels:
+    ManagedCluster:
+      common: "{policygen-common-label}"
+      logicalGroup: "active"
+      group-du-sno: ""
+      du-site: "sno-abi"
+      du-zone: "europe"
+      hardware-type: "hw-type-platform-1"
+  holdInstallation: false
+  extraManifestsRefs:
+    - name: {ran-rds-version-manifests}
+  installConfigOverrides: |
+    {
+      "capabilities": {
+        "baselineCapabilitySet": "None",
+        "additionalEnabledCapabilities": [
+          "NodeTuning",
+          "OperatorLifecycleManager",
+          "Ingress"
+        ]
+      }
+    }
+  machineNetwork:
+    - cidr: "192.168.125.0/24"
+  networkType: "OVNKubernetes"
+  pullSecretRef:
+    name: "disconnected-registry-pull-secret"
+  serviceNetwork:
+    - cidr: "172.30.0.0/16"
+  sshPublicKey: "{ssh-pub-key}"
+  # workaround for (https://issues.redhat.com/browse/OCPBUGS-55106)
+  ignitionConfigOverride: '{"ignition":{"version":"3.2.0"},"storage":{"files":[{"path":"/etc/containers/policy.json","mode":420,"overwrite":true,"contents":{"source":"data:text/plain;charset=utf-8;base64,ewogICAgImRlZmF1bHQiOiBbCiAgICAgICAgewogICAgICAgICAgICAidHlwZSI6ICJpbnNlY3VyZUFjY2VwdEFueXRoaW5nIgogICAgICAgIH0KICAgIF0sCiAgICAidHJhbnNwb3J0cyI6CiAgICAgICAgewogICAgICAgICAgICAiZG9ja2VyLWRhZW1vbiI6CiAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAgICAgIiI6IFt7InR5cGUiOiJpbnNlY3VyZUFjY2VwdEFueXRoaW5nIn1dCiAgICAgICAgICAgICAgICB9CiAgICAgICAgfQp9"}}]}}'
+  templateRefs:
+    - name: ai-cluster-templates-v1
+      namespace: open-cluster-management
+  nodes:
+    - automatedCleaningMode: "disabled"
+      bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/sno-abi"
+      bmcCredentialsName:
+        name: "sno-abi-bmc-credentials"
+      bootMACAddress: "AA:AA:AA:AA:03:01"
+      bootMode: "UEFI"
+      hostName: "ocp-sno-abi.sno-abi.5g-deployment.lab"
+      ignitionConfigOverride: |
+        {
+          "ignition": {
+            "version": "3.2.0"
+          },
+          "storage": {
+            "disks": [
+              {
+                "device": "/dev/vda",
+                "partitions": [
+                  {
+                    "label": "var-lib-containers",
+                    "sizeMiB": 0,
+                    "startMiB": 60000
+                  }
+                ],
+                "wipeTable": false
+              }
+            ],
+            "filesystems": [
+              {
+                "device": "/dev/disk/by-partlabel/var-lib-containers",
+                "format": "xfs",
+                "mountOptions": [
+                  "defaults",
+                  "prjquota"
+                ],
+                "path": "/var/lib/containers",
+                "wipeFilesystem": true
+              }
+            ]
+          },
+          "systemd": {
+            "units": [
+              {
+                "contents": "# Generated by Butane\n[Unit]\nRequires=systemd-fsck@dev-disk-by\\x2dpartlabel-var\\x2dlib\\x2dcontainers.service\nAfter=systemd-fsck@dev-disk-by\\x2dpartlabel-var\\x2dlib\\x2dcontainers.service\n\n[Mount]\nWhere=/var/lib/containers\nWhat=/dev/disk/by-partlabel/var-lib-containers\nType=xfs\nOptions=defaults,prjquota\n\n[Install]\nRequiredBy=local-fs.target",
+                "enabled": true,
+                "name": "var-lib-containers.mount"
+              }
+            ]
+          }
+        }
+      nodeNetwork:
+        interfaces:
+          - name: "enp3s0"
+            macAddress: "AA:AA:AA:AA:03:01"
+        config:
+          interfaces:
+            - name: enp3s0
+              type: ethernet
+              state: up
+              ipv4:
+                enabled: true
+                dhcp: true
+              ipv6:
+                enabled: false
+      role: "master"
+      rootDeviceHints:
+        deviceName: "/dev/vda"
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+EOF
+-----
+
+IMPORTANT: Check that the above ClusterInstance CR is using the `ai-node-templates-v1` (Agent Based Install) templates to deploy the `sno-abi` OpenShift cluster. We added an `ignitionConfigOverride` that creates a separate partition for `/var/lib/containers`, which is a pre-requisite for upgrading clusters using the image-based Upgrade method. We will address image-based upgrades later in this lab. Detailed information about the requirements can be found {ibu-var-lib-containers}[here].
+
+In our site, we defined `clusterImageSetNameRef: "active-ocp-version"` for the release to use to deploy our site. This reference points to the `active` release that we are deploying our sites with. Let's create the `ClusterImageSet` in the repo:
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/resources/active-ocp-version.yaml
+---
+apiVersion: hive.openshift.io/v1
+kind: ClusterImageSet
+metadata:
+  name: active-ocp-version
+spec:
+  releaseImage: {active-ocp-version-clusterimageset}
+EOF
+-----
+[#reference-manifest-clusterinstance]
+== Reference Manifest Configuration
+
+Let's add the {rds-config}[reference RAN DU configuration] for the version of OCP we are about to deploy. In the workstation, run the following command to extract the reference ZTP {lab-major-version} RAN configuration. These manifests are extracted from the `/extra-manifest` folder of the `ztp-site-generate` container.
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+podman login infra.5g-deployment.lab:8443 -u admin -p r3dh4t1! --tls-verify=false
+podman run --log-driver=none --rm --tls-verify=false {ztp-sitegenerate-disconnected-image} extract /home/ztp/extra-manifest --tar | tar x -C ~/5g-deployment-lab/ztp-repository/site-configs/reference-manifest/{lab-major-version}/
+-----
+
+`reference-manifest/{lab-major-version}/` refers to the Git subdirectory that stores the contents of the RAN configuration for a specific version, in this case {lab-major-version}. Different versions of the RAN DU configuration can coexist by extracting them from the appropriate `ztp-site-generate` container version to a different `extra-manifest` folder. Then, the user only needs to include the right `reference-manifest` version folder to the cluster version being installed.
+
+This configuration is applied during installation time. 
+
+Our recommendation is to always create a reference and keep the reference and user defined manifests (see next section) separately. This makes later updates to the reference based on z-stream releases significantly easier (simply replace the contents of reference-manifests with updated content)
+
+[#extra-manifest-clusterinstance]
+== Extra Manifest Configuration
+
+Now, let's add the **extra** or **custom** RAN configuration to the cluster. It is strongly recommended to include crun manifests as part of the additional install-time manifests for 4.13+. Let's create proper machine configuration in the `extra manifest` folder:
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/hub-1/extra-manifest/enable-crun-master.yaml
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: ContainerRuntimeConfig
+metadata:
+ name: enable-crun-master
+spec:
+ machineConfigPoolSelector:
+   matchLabels:
+     pools.operator.machineconfiguration.openshift.io/master: ""
+ containerRuntimeConfig:
+   defaultRuntime: crun
+EOF
+-----
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/hub-1/extra-manifest/enable-crun-worker.yaml
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: ContainerRuntimeConfig
+metadata:
+ name: enable-crun-worker
+spec:
+ machineConfigPoolSelector:
+   matchLabels:
+     pools.operator.machineconfiguration.openshift.io/worker: ""
+ containerRuntimeConfig:
+   defaultRuntime: crun
+EOF
+-----
+
+IMPORTANT: As of version 4.16 the default cgroups configuration is **cgroupsv2**. If there is a need to run cgroupsv1 instead, please add the https://github.com/openshift-kni/cnf-features-deploy/blob/release-4.15/ztp/source-crs/extra-manifest/enable-cgroups-v1.yaml[enable-cgroups-v1.yaml] extra-manifest to the same `extra-manifest` folder where crun is configured.
+
+[#preparing-installation]
+== Get Ready for the Installation
+
+Finally, we will add the kustomizations for the ClusterInstance. Note that the Reference RAN DU and the extra-manifests configuration are included as a `ConfigMap` custom resource named *{ran-rds-version-manifests}*.
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/hub-1/kustomization.yaml
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+generators:
+  - ocp-sno-abi.yaml
+EOF
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/resources/kustomization.yaml
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - active-ocp-version.yaml
+EOF
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/kustomization.yaml
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - pre-reqs/
+  - resources/
+  - hub-1/ocp-sno-abi.yaml
+
+configMapGenerator:
+  - files:
+    - reference-manifest/{lab-major-version}/01-container-mount-ns-and-kubelet-conf-master.yaml
+    - reference-manifest/{lab-major-version}/01-container-mount-ns-and-kubelet-conf-worker.yaml
+    - reference-manifest/{lab-major-version}/01-disk-encryption-pcr-rebind-master.yaml
+    - reference-manifest/{lab-major-version}/01-disk-encryption-pcr-rebind-worker.yaml
+    - reference-manifest/{lab-major-version}/03-sctp-machine-config-master.yaml
+    - reference-manifest/{lab-major-version}/03-sctp-machine-config-worker.yaml
+    - reference-manifest/{lab-major-version}/06-kdump-master.yaml
+    - reference-manifest/{lab-major-version}/06-kdump-worker.yaml
+    - reference-manifest/{lab-major-version}/07-sriov-related-kernel-args-master.yaml
+    - reference-manifest/{lab-major-version}/07-sriov-related-kernel-args-worker.yaml
+    - reference-manifest/{lab-major-version}/08-set-rcu-normal-master.yaml
+    - reference-manifest/{lab-major-version}/08-set-rcu-normal-worker.yaml
+    - reference-manifest/{lab-major-version}/09-openshift-marketplace-ns.yaml
+    - reference-manifest/{lab-major-version}/99-crio-disable-wipe-worker.yaml
+    - reference-manifest/{lab-major-version}/99-sync-time-once-master.yaml
+    - reference-manifest/{lab-major-version}/99-crio-disable-wipe-master.yaml
+    - reference-manifest/{lab-major-version}/99-sync-time-once-worker.yaml
+    - hub-1/extra-manifest/enable-crun-master.yaml
+    - hub-1/extra-manifest/enable-crun-worker.yaml
+    name: {ran-rds-version-manifests}
+    namespace: sno-abi
+
+generatorOptions:
+  disableNameSuffixHash: true
+EOF
+-----
+
+At this point we can commit the changes to the repo. We will push the changes together with the cluster and Telco-related infrastructure operator configurations in the next section.
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+cd ~/5g-deployment-lab/ztp-repository
+git add --all
+git commit -m 'Added SNO ABI cluster using agent-based install flow'
+git push origin main
+cd ~
+-----
+
+[#deploying-sno-using-gitops-pipeline]
+== Deploying the SNO Cluster using the ZTP GitOps Pipeline
+
+When we applied the ZTP GitOps Pipeline configuration in the last section, the ArgoCD app called clusters takes care of deploying the `sno-abi` SNO cluster defined in the `ClusterInstance`.
+
+At this point, ArgoCD started doing its magic which means that the cluster deployment should already be running, let's see what happened in Argo CD.
+
+WARNING: It may take up to 5 minutes for Argo CD to start syncing changes.
+
+1. Login into https://openshift-gitops-server-openshift-gitops.apps.hub.5g-deployment.lab/[Argo CD].
+2. When accessing choose `Logging with OpenShift`. On the next screen use the OpenShift Console Admin credentials.
+3. From all these apps, click on `clusters` we will see something similar to the following screen:
++
+image::argocd-clusters-app-sno-abi.png[ArgoCD Clusters App]
+
+[#monitoring-deployment]
+== Monitoring the Deployment
+
+Once the ZTP GitOps Pipeline starts deploying our clusters we can follow the installation status via the WebUI or the CLI.
+
+[#monitoring-deployment-webui]
+== Monitoring the Deployment via the WebUI
+
+WARNING: It may take a while for the installation to start. Wait at least 10 minutes if you see the message `The cluster is not ready for installation` or if the `SNO ABI` cluster appears as `draft`.
+
+1. Access the https://console-openshift-console.apps.hub.5g-deployment.lab/multicloud/home/welcome[RHACM WebUI] and log in using your OpenShift credentials.
+2. In the top-left corner, click on `local-cluster` and select `All Clusters` to enter the RHACM Console.
+3. Navigate to `Infrastructure` -> `Clusters`. If the deployment has not yet started, you will see a screen similar to this:
++
+image::acm-clusterview-draft.png[RHACM Cluster View Draft]
++
+4. Eventually, the `SNO ABI` cluster will start its deployment:
++
+image::acm-clusterview.png[RHACM Cluster View]
++
+5. To check the deployment status of the `sno-abi` cluster, click on `sno-abi`. You will see a screen like this:
++
+image::acm-sno-abi-view.png[RHACM sno-abi Cluster View]
++
+6. You can track progress here. For additional details, click on `View Cluster Events`, where you will see more information:
++
+image::acm-sno-abi-clusterevents.png[RHACM sno-abi Cluster Events]
++
+7. The deployment will eventually complete:
++
+IMPORTANT: The installation of the `SNO ABI` cluster takes approximately 50 minutes to complete.
++
+image::acm-sno-abi-install-completed.png[RHACM sno-abi Cluster Deployment Finished]
+
+[#monitoring-deployment-cli]
+== Monitoring the Deployment via the CLI
+
+IMPORTANT: The following commands must be executed from the workstation host unless specified otherwise.
+
+1. Check the `AgentClusterInstall` status for the SNO ABI cluster:
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+oc --kubeconfig ~/hub-kubeconfig -n sno-abi get agentclusterinstall sno-abi
+-----
++
+[console-input]
+[source,console,subs="attributes+,+macros"]
+-----
+NAME      CLUSTER   STATE
+sno-abi   sno-abi   finalizing
+-----
++
+2. For expanded information, similar to what is available in the WebUI, check the conditions of the `AgentClusterInstall` object during installation:
++
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+oc --kubeconfig ~/hub-kubeconfig -n sno-abi get agentclusterinstall sno-abi -o yaml
+-----
++
+[console-input]
+[source,console,subs="attributes+,+macros"]
+-----
+- lastProbeTime: "{last-update-date}T16:18:20Z"
+  lastTransitionTime: "{last-update-date}T16:18:20Z"
+  message: 'The installation is in progress: Finalizing cluster installation. Cluster
+    version status: progressing, message: Working towards {sno-cluster-version1-cvo}: 523 of 829 done
+    (63% complete)'
+  reason: InstallationInProgress
+  status: "False"
+  type: Completed
+-----
++
+3. Once installed:
++
+[console-input]
+[source,console,subs="attributes+,+macros"]
+-----
+- lastProbeTime: "{last-update-date}T17:05:20Z"
+  lastTransitionTime: "{last-update-date}T17:05:20Z"
+  message: 'The installation has completed: Cluster is installed'
+  reason: InstallationCompleted
+  status: "True"
+  type: Completed
+-----
+
+IMPORTANT: The installation of the `SNO ABI` cluster takes approximately 50 minutes to complete.
+
+While waiting for the `SNO ABI` cluster installation to finish, proceed to the next section to learn how to deploy a Single Node OpenShift (SNO) cluster using an link:ztp-workflow.html#ibi-deployment[image-based install flow]. Before that, you must create a seed image from an already deployed link:lab-environment-introduction.html#openshift-seed-sno[Single Node OpenShift seed cluster].

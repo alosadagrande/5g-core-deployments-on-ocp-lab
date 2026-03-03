@@ -1,0 +1,7 @@
+name: "4.20"
+title: LAB - 5G RAN RDS Deployments on OpenShift
+version: ~
+nav:
+  - modules/ROOT/nav.adoc
+
+start_page: ROOT:welcome.adoc

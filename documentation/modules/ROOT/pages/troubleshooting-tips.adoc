@@ -1,0 +1,499 @@
+= Troubleshooting Tips
+include::_attributes.adoc[]
+:profile: 5g-ran-lab
+
+In this section, we will provide some useful tips to troubleshoot any issue that can arise during the execution of this lab. 
+
+[#verification-lab]
+== Verification of the lab status
+
+[#containerized-infra]
+=== Containerized Infrastructure Services
+
+There are several infrastructure services that run as containers such as the Git server or the container registry. Below the list of containers that should be running.
+
+All these containers are managed via the following systemd services:
+
+- podman-gitea.service
+- podman-minio.service
+- podman-registry.service
+- podman-showroom-apache.service
+- podman-showroom-firefox.service
+- podman-showroom-traefik.service
+- podman-showroom-wetty.service
+- podman-webcache.service
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+sudo podman ps
+-----
+
+[console-input]
+[source,console]
+-----
+CONTAINER ID  IMAGE                                             COMMAND               CREATED       STATUS       PORTS                                                                                     NAMES
+22b7da48762d  quay.io/alosadag/httpd:p8080                      httpd-foreground      11 hours ago  Up 11 hours                                                                                            webcache
+3ca3e6d08b86  quay.io/mavazque/registry:2.7.1                   /etc/docker/regis...  11 hours ago  Up 11 hours                                                                                            registry
+afa55e6fec53  quay.io/minio/minio:RELEASE.2025-02-07T23-21-09Z  server /data --co...  11 hours ago  Up 11 hours  0.0.0.0:9001->9001/tcp, 0.0.0.0:9002->9000/tcp                                            minio-server
+0a044c32bb1d  quay.io/mavazque/gitea:1.17.3                     /bin/s6-svscan /e...  11 hours ago  Up 11 hours  0.0.0.0:2222->22/tcp, 0.0.0.0:3000->3000/tcp                                              gitea
+0fd211cc1bb8  quay.io/fedora/httpd-24-micro:2.4                 /usr/bin/run-http...  11 hours ago  Up 11 hours  192.168.125.1:8181->8080/tcp                                                              showroom-apache
+337206f80582  quay.io/rhsysdeseng/showroom:wetty                --ssh-user=lab-us...  11 hours ago  Up 11 hours  192.168.125.1:3001->3000/tcp                                                              showroom-wetty
+687cb4e59f6a  quay.io/rhsysdeseng/showroom:traefik-v3.3.4       --configFile=/etc...  11 hours ago  Up 11 hours  0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp, 0.0.0.0:3003->3003/tcp, 0.0.0.0:8888->8888/tcp  showroom-traefik
+a0cec2b7b429  quay.io/rhsysdeseng/showroom:webfirefox                                 11 hours ago  Up 11 hours                                                                                            showroom-firefox
+-----
+
+[#sno-vms]
+=== SNO Virtual Machines
+
+In the lab we are going to provision and configure two SNO clusters named sno-abi and sno-ibi. Let's double check that the virtual machines exist and are stopped.
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+kcli list vm
+-----
+
+[console-input]
+[source,console]
+-----
++----------------+--------+----------------+----------------------------------------------------+------+---------+
+|      Name      | Status |       Ip       |                       Source                       | Plan | Profile |
++----------------+--------+----------------+----------------------------------------------------+------+---------+
+| hub-ctlplane-0 |   up   | 192.168.125.20 | rhcos-418.94.202501221327-0-openstack.x86_64.qcow2 | hub  |  kvirt  |
+| hub-ctlplane-1 |   up   | 192.168.125.21 | rhcos-418.94.202501221327-0-openstack.x86_64.qcow2 | hub  |  kvirt  |
+| hub-ctlplane-2 |   up   | 192.168.125.22 | rhcos-418.94.202501221327-0-openstack.x86_64.qcow2 | hub  |  kvirt  |
+|    sno-abi     |  down  |                |                                                    | hub  |  kvirt  |
+|    sno-ibi     |  down  |                |                                                    | hub  |  kvirt  |
+|    sno-seed    |   up   | 192.168.125.30 |                                                    | hub  |  kvirt  |
++----------------+--------+----------------+----------------------------------------------------+------+---------+
+-----
+
+[#hub]
+=== Hub cluster
+
+Before working with `oc` commands you can enable command auto-completion by running:
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+source <(oc completion bash)
+# Make it persistent
+oc completion bash >> /etc/bash_completion.d/oc_completion
+-----
+
+Check the status of the hub cluster.
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+oc --kubeconfig ~/hub-kubeconfig get clusterversion
+-----
+
+[console-input]
+[source,console,subs="attributes+,+macros"]
+-----
+NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
+version   {hub-cluster-ocp-version}   True        False         22h     Cluster version is {hub-cluster-ocp-version}
+-----
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+oc --kubeconfig ~/hub-kubeconfig get nodes
+-----
+
+[console-input]
+[source,console,subs="attributes+,+macros"]
+-----
+NAME                               STATUS   ROLES                         AGE   VERSION
+hub-ctlplane-0.5g-deployment.lab   Ready    control-plane,master,worker   10h   {hub-cluster-kubeversion}
+hub-ctlplane-1.5g-deployment.lab   Ready    control-plane,master,worker   10h   {hub-cluster-kubeversion}
+hub-ctlplane-2.5g-deployment.lab   Ready    control-plane,master,worker   10h   {hub-cluster-kubeversion}
+-----
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+oc --kubeconfig ~/hub-kubeconfig get operators
+-----
+
+[console-input]
+[source,console]
+-----
+NAME                                                   AGE
+advanced-cluster-management.open-cluster-management    10h
+lvms-operator.openshift-storage                        10h
+multicluster-engine.multicluster-engine                10h
+openshift-gitops-operator.openshift-operators          10h
+topology-aware-lifecycle-manager.openshift-operators   10h
+-----
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+oc --kubeconfig ~/hub-kubeconfig get catalogsources -A
+-----
+
+[console-input]
+[source,console]
+-----
+NAMESPACE               NAME                                    DISPLAY   TYPE   PUBLISHER   AGE
+openshift-marketplace   cs-redhat-operator-index-v4-18-174293             grpc               10h
+-----
+
+[#dns]
+=== DNS resolution
+
+Verify that the OpenShift API and the apps domain (wildcard) can be resolved.
+
+IMPORTANT: `dig` command is not part of the standard linux utilities (you may need to install it), in RHEL-based systems is part of the `bind-utils` package.
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+dig +short api.hub.5g-deployment.lab
+-----
+
+[console-input]
+[source,console]
+-----
+192.168.125.10
+-----
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+dig +short oauth-openshift.apps.hub.5g-deployment.lab
+-----
+
+[console-input]
+[source,console]
+-----
+192.168.125.11
+-----
+
+// [#argocd-red]
+// == ArgoCD sync not working
+
+// There could be that one or both Argo applications (clusters or policies) are kept synchronizing or that their status is set to `OutOfSync`. In such cases we can double check the following:
+
+// First, check using `oc` binary the status of all the Argo applications. You can describe or show the full yaml definition of the failed application.
+
+// [.console-input]
+// [source,bash,subs="attributes+,+macros"]
+// -----
+// oc get applications -A
+// -----
+
+// [console-input]
+// [source,console]
+// -----
+// NAMESPACE          NAME                       SYNC STATUS   HEALTH STATUS
+// openshift-gitops   clusters                   OutOfSync     Healthy
+// openshift-gitops   hub-operators-config       Synced        Healthy
+// openshift-gitops   hub-operators-deployment   Synced        Healthy
+// openshift-gitops   policies                   Synced        Healthy
+// openshift-gitops   sno-seed-deployment        Synced        Healthy
+// -----
+
+
+// We can also connect to the OpenShift GitOps console and see there the error. In this case, there is a missing value in the `SiteConfig` because we did not copy and paste it properly. 
+
+// image::trbst-argo-not-sync.png[Argo app not syncing]
+
+// There are also cases that we need to synchronize manually the application because we modified the different manifests. For instance, as detailed in the previous example where we wrongly copy and paste the SiteConfig definition. In those cases, we can workaround the issue by accessing the GitOps console using the local admin user and password.
+
+// This is the permission denied error shown in the console:
+
+// image::trbsht-sync-denied.png[Argo sync denied]
+
+// Execute this command connected to the hub cluster to obtain the local admin password. Then, logout and access again by typing `admin` as username and the password the one stored as a secret in the hub cluster:
+
+// [.console-input]
+// [source,bash,subs="attributes+,+macros"]
+// -----
+// oc extract secret/openshift-gitops-cluster -n openshift-gitops --to=-
+// -----
+
+// image::trbst-login-local.png[Argo local login]
+
+
+// IMPORTANT: More information about monitoring the status of the deployment can be found in the link:monitoring-the-deployment.html[monitoring section].
+
+// [#sno2-down]
+// == SNO2 is down after syncing Argo applications
+
+// So, we have synced the cluster and policies applications in Argo successfully, e.g. everything is in green. If after 5 minutes we do not see the SNO2 virtual machine being booted we can make use of the following troubleshooting commands:
+
+// First, check if the BMC is ready so the server can be started remotely from the hub using Redfish commands.
+
+// [.console-input]
+// [source,bash,subs="attributes+,+macros"]
+// -----
+// curl -k https://192.168.125.1:9000/redfish/v1/Systems/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa0301
+// -----
+
+// [console-input]
+// [source,console]
+// -----
+// {
+//     "@odata.type": "#ComputerSystem.v1_1_0.ComputerSystem",
+//     "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa0301",
+//     "Name": "sno2",
+//     "UUID": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa0301",
+//     "Manufacturer": "Sushy Emulator",
+//     "Status": {
+//         "State": "Enabled",
+//         "Health": "OK",
+//         "HealthRollUp": "OK"
+//     },
+//     "PowerState": "Off",
+// ... REDACTED ...
+//     "@odata.context": "/redfish/v1/$metadata#ComputerSystem.ComputerSystem",
+//     "@odata.id": "/redfish/v1/Systems/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa0301",
+//     "@Redfish.Copyright": "Copyright 2014-2016 Distributed Management Task Force, Inc. (DMTF). For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright."
+// -----
+
+// If the server is up, but the installation is not progressing we may check a couple of things. First, let's verify the **sno2.5g-deployment.lab** `BaremetalHost` CR is created and in provisioned status in the hub cluster.
+
+// [.console-input]
+// [source,bash,subs="attributes+,+macros"]
+// -----
+// oc get bmh -A
+// -----
+
+// [console-input]
+// [source,console]
+// -----
+// NAMESPACE               NAME                     STATE                    CONSUMER             ONLINE   ERROR   AGE
+// openshift-machine-api   hub-ctlplane-0           externally provisioned   hub-7tjlv-master-0   true             24h
+// openshift-machine-api   hub-ctlplane-1           externally provisioned   hub-7tjlv-master-1   true             24h
+// openshift-machine-api   hub-ctlplane-2           externally provisioned   hub-7tjlv-master-2   true             24h
+// sno1                    sno1                     provisioned                                   true             24h
+// sno2                    sno2.5g-deployment.lab   provisioned                                   true             112s
+// -----
+
+// Verify that the ISO image has been without errors by checking the `InfraEnv` and `BaremetalHost` custom resources:
+
+// [.console-input]
+// [source,bash,subs="attributes+,+macros"]
+// -----
+// oc get infraenv -A
+// -----
+
+// [console-input]
+// [source,console,subs="attributes+,+macros"]
+// -----
+// NAMESPACE   NAME   ISO CREATED AT
+// sno1        sno1   {last-update-date}T10:08:09Z
+// sno2        sno2   {last-update-date}T10:26:06Z
+// -----
+
+// [.console-input]
+// [source,bash,subs="attributes+,+macros"]
+// -----
+// oc get infraenv sno2 -n sno2 -oyaml
+// -----
+
+// [console-input]
+// [source,yaml]
+// -----
+// apiVersion: agent-install.openshift.io/v1beta1
+// kind: InfraEnv
+// metadata:
+// ... REDACTED ...
+//   debugInfo:
+//     eventsURL: https://assisted-service-multicluster-engine.apps.hub.5g-deployment.lab/api/assisted-install/v2/events?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiI2YWEzZGUxNS1hOTQ1LTRjNTgtODljOS02MDBkYzJmNWRmNTkifQ.fG3voLHggbgtCW9fQH1Y2vP5DSCOpo-t2pgDwvEe6Q7nE_Qp9-7BMKudpXiSTTYZCeWVE3s6nsAllP4IkK1ljA&infra_env_id=6aa3de15-a945-4c58-89c9-600dc2f5df59
+//   isoDownloadURL: https://assisted-image-service-multicluster-engine.apps.hub.5g-deployment.lab/images/6aa3de15-a945-4c58-89c9-600dc2f5df59?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiI2YWEzZGUxNS1hOTQ1LTRjNTgtODljOS02MDBkYzJmNWRmNTkifQ.AFhkv4UPH0R0kGpBdZ8cqo8iNSH7z-CRsHsYbwQ6cVzjcnxnDRIEiout29UJOyt-lcCPPsOLW1YPKDh5GJ1Tqg&arch=x86_64&type=minimal-iso&version=4.11
+// -----
+
+
+// [.console-input]
+// [source,bash,subs="attributes+,+macros"]
+// -----
+// oc get bmh sno2.5g-deployment.lab -n sno2 -o yaml
+// -----
+
+// [console-input]
+// [source,yaml]
+// -----
+// apiVersion: metal3.io/v1alpha1
+// kind: BareMetalHost
+// metadata:
+// ... REDACTED ...
+//   image:
+//     format: live-iso
+//     url: https://assisted-image-service-multicluster-engine.apps.hub.5g-deployment.lab/images/6aa3de15-a945-4c58-89c9-600dc2f5df59?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiI2YWEzZGUxNS1hOTQ1LTRjNTgtODljOS02MDBkYzJmNWRmNTkifQ.AFhkv4UPH0R0kGpBdZ8cqo8iNSH7z-CRsHsYbwQ6cVzjcnxnDRIEiout29UJOyt-lcCPPsOLW1YPKDh5GJ1Tqg&arch=x86_64&type=minimal-iso&version=4.11
+//   online: true
+// -----
+
+// IMPORTANT: More information about monitoring the status of the deployment can be found in the link:monitoring-the-deployment.html[monitoring section].
+
+[#policies-blank]
+== Policies not showing in the Governance console
+
+In cases where the policies are not shown in the Governance section of the Multicloud console we have to check first, if the **policies** Argo application was synced successfully.
+
+Verify that the policies in the hub cluster are similar to the ones shown below. Remember that **inform** as remediation is correct.
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+oc --kubeconfig ~/hub-kubeconfig get policies -A
+-----
+
+[console-input]
+[source,console]
+-----
+NAMESPACE      NAME                                       REMEDIATION ACTION   COMPLIANCE STATE   AGE
+sno-abi        ztp-policies.common-config-policy          inform               Compliant          116m
+sno-abi        ztp-policies.common-subscriptions-policy   inform               Compliant          116m
+sno-abi        ztp-policies.du-sno-group-policy           inform               Compliant          116m
+sno-abi        ztp-policies.du-sno-sites-sites-policy     inform               Compliant          116m
+sno-ibi        ztp-policies.common-config-policy          inform               Compliant          92m
+sno-ibi        ztp-policies.common-subscriptions-policy   inform               Compliant          92m
+sno-ibi        ztp-policies.du-sno-group-policy           inform               Compliant          92m
+sno-ibi        ztp-policies.du-sno-sites-sites-policy     inform               Compliant          92m
+ztp-policies   common-config-policy                       inform               Compliant          117m
+ztp-policies   common-subscriptions-policy                inform               Compliant          117m
+ztp-policies   common-test-config-policy                  inform                                  117m
+ztp-policies   common-test-subscriptions-policy           inform                                  117m
+ztp-policies   du-sno-group-policy                        inform               Compliant          117m
+ztp-policies   du-sno-sites-sites-policy                  inform               Compliant          117m
+ztp-policies   du-sno-test-group-policy                   inform                                  117m
+-----
+
+[#policies-not-applied]
+== Policies not applied
+
+In such cases it can be because of multiple errors. First, let's check that the policies are shown in the link:troubleshooting-tips.html#policies-blank[Governance console]. 
+
+If the policies show a warning message in the Cluster violations section, it is because the SNO servers are still being provisioned. You can double check the status of the provisioning in the Infrastructure -> Clusters section. Verify that there is not ztp-running label added yet.
+
+In cases where the Governance console shows policies already assigned to SNO clusters, we should check the status of the TALM operator. Remember, that it is responsible of moving the policies from inform to enforce, so they are eventually applied. Check the status of the cluster-group-upgrades-controller-manager Pod and its logs:
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+oc --kubeconfig ~/hub-kubeconfig get pods -n openshift-operators
+-----
+
+[console-input]
+[source,console]
+-----
+NAME                                                            READY   STATUS    RESTARTS   AGE
+cluster-group-upgrades-controller-manager-v2-6fcb8695bf-bvngg   2/2     Running   0          10h
+openshift-gitops-operator-controller-manager-65b8984b8c-2qp8j   2/2     Running   0          10h
+-----
+
+Next, we can verify that a `ClusterGroupUpgrade` CR was created automatically by the TALM operator. If it is not created, it means that either the label is not set yet in the cluster or the operator is having issues. In the latest case, check the logs as explained previously.
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+oc --kubeconfig ~/hub-kubeconfig get cgu -A
+-----
+
+[console-input]
+[source,console]
+-----
+NAMESPACE      NAME                                         AGE   STATE       DETAILS
+ztp-install    sno-abi                                      73m   Completed   All clusters are compliant with all the managed policies
+ztp-install    sno-ibi                                      66m   Completed   All clusters are compliant with all the managed policies
+-----
+
+Describing the CGU shows a lot of information about the current status of the configuration:
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+oc --kubeconfig ~/hub-kubeconfig get cgu -n ztp-install sno-abi -o yaml
+-----
+
+[console-input]
+[source,yaml,subs="attributes+,+macros"]
+-----
+apiVersion: ran.openshift.io/v1alpha1
+kind: ClusterGroupUpgrade
+metadata:
+... REDACTED ...
+status:
+  clusters:
+  - name: sno-abi
+    state: complete
+  computedMaxConcurrency: 1
+  conditions:
+  - lastTransitionTime: "2025-04-01T19:08:47Z"
+    message: All selected clusters are valid
+    reason: ClusterSelectionCompleted
+    status: "True"
+    type: ClustersSelected
+  - lastTransitionTime: "2025-04-01T19:08:47Z"
+    message: Completed validation
+    reason: ValidationCompleted
+    status: "True"
+    type: Validated
+  - lastTransitionTime: "2025-04-01T19:10:35Z"
+    message: All clusters are compliant with all the managed policies
+    reason: Completed
+    status: "False"
+    type: Progressing
+  - lastTransitionTime: "2025-04-01T19:10:35Z"
+    message: All clusters are compliant with all the managed policies
+    reason: Completed
+    status: "True"
+    type: Succeeded
+  managedPoliciesContent:
+    common-subscriptions-policy: '[{"kind":"Subscription","name":"lvms-operator","apiVersion":"operators.coreos.com/v1alpha1","namespace":"openshift-storage"},{"kind":"Subscription","name":"sriov-network-operator-subscription","apiVersion":"operators.coreos.com/v1alpha1","namespace":"openshift-sriov-network-operator"}]'
+  managedPoliciesForUpgrade:
+  - name: common-config-policy
+    namespace: ztp-policies
+  - name: common-subscriptions-policy
+    namespace: ztp-policies
+  - name: du-sno-group-policy
+    namespace: ztp-policies
+  - name: du-sno-sites-sites-policy
+    namespace: ztp-policies
+  managedPoliciesNs:
+    common-config-policy: ztp-policies
+    common-subscriptions-policy: ztp-policies
+    du-sno-group-policy: ztp-policies
+    du-sno-sites-sites-policy: ztp-policies
+  remediationPlan:
+  - - sno-abi
+  status:
+    completedAt: "2025-04-01T19:10:35Z"
+    startedAt: "2025-04-01T19:08:48Z"
+-----
+
+Verfiy that now there are two times the number of policies in the hub cluster. That's because a enforce copy of each one of them was created.
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+-----
+oc --kubeconfig ~/hub-kubeconfig get policies -A
+-----
+
+[console-input]
+[source,console]
+-----
+NAMESPACE      NAME                                       REMEDIATION ACTION   COMPLIANCE STATE   AGE
+sno-abi        ztp-policies.common-config-policy          inform               Compliant          121m
+sno-abi        ztp-policies.common-subscriptions-policy   inform               Compliant          121m
+sno-abi        ztp-policies.du-sno-group-policy           inform               Compliant          121m
+sno-abi        ztp-policies.du-sno-sites-sites-policy     inform               Compliant          121m
+sno-ibi        ztp-policies.common-config-policy          inform               Compliant          97m
+sno-ibi        ztp-policies.common-subscriptions-policy   inform               Compliant          97m
+sno-ibi        ztp-policies.du-sno-group-policy           inform               Compliant          97m
+sno-ibi        ztp-policies.du-sno-sites-sites-policy     inform               Compliant          97m
+ztp-policies   common-config-policy                       inform               Compliant          121m
+ztp-policies   common-subscriptions-policy                inform               Compliant          121m
+ztp-policies   common-test-config-policy                  inform                                  121m
+ztp-policies   common-test-subscriptions-policy           inform                                  121m
+ztp-policies   du-sno-group-policy                        inform               Compliant          121m
+ztp-policies   du-sno-sites-sites-policy                  inform               Compliant          121m
+ztp-policies   du-sno-test-group-policy                   inform                                  121m
+-----
+
+WARNING: Each enforce policy is being applied one by one. There can be cases where the Cluster violations or the Compliance status is not set for the enforced cluster. It takes time to move to the next one depending on the changes applied to the target cluster.

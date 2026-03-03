@@ -1,0 +1,85 @@
+= Introduction to Telco Related Infrastructure Operators
+include::_attributes.adoc[]
+:profile: 5g-ran-lab
+
+When working on RAN environments there are a set of operators that will be common to almost all of them. In this section we will introduce the various OpenShift Container Platform components that you use to configure and deploy clusters to run telco RAN DU workloads.
+
+image::ran-du-components.png[Telco RAN DU RDS components]
+
+[#node-tuning-operator]
+== Node Tuning Operator
+
+The Node Tuning Operator helps you manage node-level tuning by orchestrating the TuneD daemon and other OS level tuning. In the context of RAN deployments it is used to achieve low latency performance by using the Performance Profile controller.
+
+In RAN environments we will leverage the PerformanceProfile API in order to:
+
+* Update the kernel to kernel-rt.
+* Configure CPUs for housekeeping (reserved CPUs).
+* Configure CPUs for running workloads (isolated CPUs).
+* Configure workloadHints to enable tuning of power savings vs performance. {workload-hints-doc}[More here].
+
+The Node Tuning Operator is part of the standard OpenShift installation.
+
+You can read more about the NTO {nto-docs}[here].
+
+[#sriov-operator]
+== SR-IOV Operator
+
+This Operator helps you manage SR-IOV network devices and network attachments. You can think of an SR-IOV NIC like a hypervisor for NICs, you have a physical NIC and you can create (a limited number of) virtualized NICs out of it.
+
+We usually refer to this virtualized NICs as virtual functions (VFs), and these are exposed in the containers in order to provide extra networks to workloads. These VFs are "slices" of the underlying NIC which are passed into the container as hardware devices. This allows the container direct access to that "slice" of the NIC and is typically used to provide high performance access to networking.
+
+You can read more about the SR-IOV operator {sriov-docs}[here].
+
+[#ptp-operator]
+== PTP Operator
+
+Precision Time Protocol (PTP) is used to synchronize clocks in a network, as discussed xref:5g-ran-context.adoc#ptp[previously]. When used in conjunction with hardware support, PTP is capable of sub-microsecond accuracy, and is more accurate than Network Time Protocol (NTP).
+
+The PTP Operator can be used to configure PTP on OpenShift nodes.
+
+Some extra PTP information you may find useful:
+
+* {ptp-docs}[PTP Operator Official Docs].
+* PTP blog posts on cloud.redhat.com https://cloud.redhat.com/blog/delivering-high-precision-clock-synchronization-for-low-latency-5g-networks-with-openshift-part-1[part 1] and https://cloud.redhat.com/blog/delivering-high-accuracy-clock-synchronization-for-5g-networks-with-openshift-part-2[part 2].
+
+[#accelerators-operators]
+== Accelerators Operators
+
+Specialized hardware devices can be used to accelerate 4G/LTE and 5G virtualized radio access networks (vRAN) workloads. The use of these devices increases the overall compute capacity of a commercial, off-the-shelf platform by offloading compute intensive tasks to dedicated hardware.
+
+In order to manage these devices, there are multiple accelerator operators that we may need to deploy in our OpenShift clusters.
+
+[#cluster-logging-operator]
+== Cluster Logging Operator
+
+The Logging Operator provides APIs to control collection and forwarding of logs from all pods and nodes in a cluster. This includes application logs (from regular pods), infrastructure logs (from system pods and node logs), and audit logs (special node logs with legal/security implications). In telco RAN DU configurations, logging collects logs from far-edge nodes for remote analysis.
+
+The Logging Operator does not collect or forward logs itself; it starts, configures, monitors, and manages components that perform these tasks. Note that in the RAN use model, the Fluentd log collector is deprecated in favor of the Vector log collector.
+
+[#lifecycle-operator]
+== Lifecycle Agent Operator
+
+The Lifecycle Agent provides local lifecycle management services for single-node OpenShift clusters. It is not applicable in multi-node clusters or single-node OpenShift clusters with an additional worker.
+
+Starting with OpenShift Container Platform 4.14.13, the Lifecycle Agent offers an alternative method for upgrading platform versions in single-node OpenShift clusters. The image-based upgrade is faster than standard methods and allows direct upgrades from OpenShift Container Platform <4.y> to <4.y+2>, and <4.y.z> to <4.y.z+n>. 
+
+You can read more about the image-based upgrade technology {ibu-docs}[here].
+
+[#storage-operator]
+== Storage Operators
+
+LVM Storage can be used as the local storage implementation for the RAN DU use case. When LVM Storage is used as the storage solution, it replaces the Local Storage Operator, with CPU resources assigned to the management partition as platform overhead.
+
+LVM Storage provides dynamic provisioning of block and file storage. Logical volumes created from local devices can be used as PVC resources by applications. Volume expansion and snapshots are also supported.
+
+[#oadp-operator]
+== OpenShift API for Data Protection Operator
+
+The OpenShift API for Data Protection (OADP) safeguards customer applications on OpenShift Container Platform. It offers disaster recovery protection for applications, application-related cluster resources, persistent volumes, and internal images.
+
+IMPORTANT: OADP does not serve as a disaster recovery solution for etcd or OpenShift Operators.
+
+OADP support is provided for customer workload namespaces and cluster scope resources. It is especially critical during image-based upgrades when backups of customer and cluster resources are needed prior to upgrading, followed by restoration once upgrades are completed.
+
+You can read more about the OADP operator {ibu-oadp}[here].
