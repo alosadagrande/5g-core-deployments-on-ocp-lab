@@ -1,0 +1,61 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hub-operators-deployment
+  namespace: openshift-gitops
+spec:
+  destination:
+    name: ''
+    namespace: ''
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: lab-materials/hub-config/operators-deployment
+    repoURL: 'http://infra.5g-deployment.lab:3000/student/5g-ran-deployments-on-ocp-lab.git'
+    targetRevision: lab-4.20
+  project: default
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 1
+        maxDuration: 3m0s
+      limit: 1000
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hub-operators-config
+  namespace: openshift-gitops
+spec:
+  ignoreDifferences:
+  - group: multicluster.openshift.io
+    jsonPointers:
+    - /spec/overrides/components
+    kind: MultiClusterEngine
+  - group: operator.open-cluster-management.io
+    jsonPointers:
+    - /spec/overrides/components
+    kind: MultiClusterHub
+  destination:
+    name: ''
+    namespace: ''
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: lab-materials/hub-config/operators-config
+    repoURL: 'http://infra.5g-deployment.lab:3000/student/5g-ran-deployments-on-ocp-lab.git'
+    targetRevision: lab-4.20
+  project: default
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 1
+        maxDuration: 3m0s
+      limit: 1000

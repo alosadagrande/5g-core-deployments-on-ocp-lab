@@ -1,0 +1,171 @@
+---
+apiVersion: operator.open-cluster-management.io/v1
+kind: MultiClusterHub
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    installer.open-cluster-management.io/mce-subscription-spec: '{"source": "cs-redhat-operator-index-v4-20-176943"}'
+  name: multiclusterhub
+  namespace: open-cluster-management
+spec: 
+  availabilityConfig: Basic
+  overrides:
+    components:
+    - name: siteconfig
+      enabled: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  name: multiclusterhub-operator-pull-secret
+  namespace: open-cluster-management-observability
+stringData:
+  .dockerconfigjson: '{"auths":{"infra.5g-deployment.lab:8443":{"auth":"YWRtaW46cjNkaDR0MSE="}}}'
+type: kubernetes.io/dockerconfigjson
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  name: thanos-object-storage
+  namespace: open-cluster-management-observability
+type: Opaque
+stringData:
+  thanos.yaml: |
+    type: s3
+    config:
+      bucket: multiclusterobservability
+      endpoint: infra.5g-deployment.lab:9002
+      insecure: true
+      access_key: admin
+      secret_key: admin1234
+---
+apiVersion: observability.open-cluster-management.io/v1beta2
+kind: MultiClusterObservability
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    mco-disable-alerting: "true"
+  name: observability
+spec:
+  instanceSize: minimal
+  observabilityAddonSpec: {}
+  advanced:
+    alertmanager:
+      replicas: 1
+    grafana: 
+      replicas: 1
+    observatoriumAPI:
+      replicas: 1
+    rbacQueryProxy:
+      replicas: 1
+    storeMemcached:
+      replicas: 1
+    queryFrontendMemcached:
+      replicas: 1
+    queryFrontend:
+      replicas: 1
+    query:
+      replicas: 1
+    receive:
+      replicas: 1
+    rule:
+      replicas: 1
+    store:
+      replicas: 1
+    multiClusterObservabilityAddon:
+      replicas: 1
+  storageConfig:
+    metricObjectStorage:
+      name: thanos-object-storage
+      key: thanos.yaml
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  annotations:
+    policy.open-cluster-management.io/categories: CM Configuration Management
+    policy.open-cluster-management.io/controls: CM-2 Baseline Configuration
+    policy.open-cluster-management.io/standards: NIST SP 800-53
+    argocd.argoproj.io/sync-wave: "3"
+  name: obs-route-policy
+  namespace: open-cluster-management-observability
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: obs-route-policy
+        spec:
+          remediationAction: enforce
+          severity: low
+          namespaceSelector:
+            exclude:
+              - kube-*
+            include:
+              - '*'
+          object-templates-raw: |
+            {{- range (lookup "cluster.open-cluster-management.io/v1" "ManagedCluster" "" "").items }}
+            - metadataComplianceType: musthave
+              objectDefinition:
+                apiVersion: cluster.open-cluster-management.io/v1
+                kind: ManagedCluster
+                metadata:
+                  name: {{ .metadata.name }}
+                  annotations:
+                    acm-alertmanager-route: '{{ (lookup "route.openshift.io/v1" "Route" "open-cluster-management-observability" "alertmanager").spec.host }}'
+            {{- end }}
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: obs-route-policy-placement
+  namespace: open-cluster-management-observability
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchExpressions:
+            - key: local-cluster
+              operator: In
+              values:
+                - "true"
+  tolerations:
+    - key: cluster.open-cluster-management.io/unavailable
+      operator: Exists
+    - key: cluster.open-cluster-management.io/unreachable
+      operator: Exists
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: obs-route-policy-placementbinding
+  namespace: open-cluster-management-observability
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+placementRef:
+  name: obs-route-policy-placement
+  kind: Placement
+  apiGroup: cluster.open-cluster-management.io
+subjects:
+  - name: obs-route-policy
+    kind: Policy
+    apiGroup: policy.open-cluster-management.io
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSetBinding
+metadata:
+  name: default
+  namespace: open-cluster-management-observability
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  clusterSet: default
