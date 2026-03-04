@@ -60,7 +60,7 @@ disconnected_operators:
   - name: stable-4.20
 - name: numaresources-operator
   channels:
-  - name: 4.20
+  - name: '"4.20"'
 - name: ocs-client-operator
   channels:
   - name: stable-4.20
