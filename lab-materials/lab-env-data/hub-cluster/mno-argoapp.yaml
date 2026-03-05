@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: sno-seed-deployment
+  name: mno-deployment
   namespace: openshift-gitops
 spec:
   destination:
@@ -10,7 +10,7 @@ spec:
     namespace: ''
     server: 'https://kubernetes.default.svc'
   source:
-    path: lab-materials/sno-deployment
+    path: lab-materials/mno-deployment
     repoURL: 'http://infra.5g-deployment.lab:3000/student/5g-ran-deployments-on-ocp-lab.git'
     targetRevision: lab-4.20
   project: default
