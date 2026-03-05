@@ -12,7 +12,7 @@ spec:
   source:
     path: lab-materials/hub-config/operators-deployment
     repoURL: 'http://infra.5g-deployment.lab:3000/student/5g-core-deployments-on-ocp-lab.git'
-    targetRevision: lab-4.20
+    targetRevision: main
   project: default
   syncPolicy:
     automated:
@@ -46,8 +46,8 @@ spec:
     server: 'https://kubernetes.default.svc'
   source:
     path: lab-materials/hub-config/operators-config
-    repoURL: 'http://infra.5g-deployment.lab:3000/student/5g-ran-deployments-on-ocp-lab.git'
-    targetRevision: lab-4.20
+    repoURL: 'http://infra.5g-deployment.lab:3000/student/5g-core-deployments-on-ocp-lab.git'
+    targetRevision: main
   project: default
   syncPolicy:
     automated:
