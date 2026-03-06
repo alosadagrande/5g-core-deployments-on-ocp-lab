@@ -89,7 +89,7 @@ disconnected_extra_images:
 - registry.redhat.io/openshift4/ztp-site-generate-rhel8:v4.20.0-1
 # Image below is required for kustomize plugins
 - registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.15.1-1
-disconnected_extra_release: 4.18.34
+#disconnected_extra_release: 4.18.34
 disk_size: 120
 extra_disks: [120]
 memory: 26000
