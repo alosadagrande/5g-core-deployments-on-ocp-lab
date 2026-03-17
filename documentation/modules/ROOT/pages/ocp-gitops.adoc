@@ -1,8 +1,8 @@
 = OpenShift GitOps
 include::_attributes.adoc[]
-:profile: 5g-ran-lab
+:profile: 5g-core-lab
 
-GitOps is a key part of how we deploy and manage RAN infrastructure at scale, in this section we are going to cover the basics around GitOps and how it is used in Zero Touch Provisioning (ZTP) and ongoing management of OpenShift clusters.
+GitOps is a key part of how we deploy and manage Telco Core infrastructure at scale, in this section we are going to cover the basics around GitOps and how it is used in Zero Touch Provisioning (ZTP) and ongoing management of OpenShift clusters.
 
 [#gitops]
 == GitOps
