@@ -1,11 +1,11 @@
-= Welcome to the Red Hat Lab 5G RAN RDS Deployments on OpenShift
+= Welcome to the Red Hat Lab 5G Core RDS Deployments on OpenShift
 :!sectids:
 
 [.text-center.strong]
-[#5g-ran-lab]
-== Red Hat Lab - 5G RAN RDS Deployments on OpenShift
+[#5g-Core-lab]
+== Red Hat Lab - 5G Core RDS Deployments on OpenShift
 
-This lab will guide you through the deployment of a RAN ready infrastructure following the Reference Design Specification (RDS) crafted by the Red Hat CNF team. The lab consists of two parts, the first part introduces essential concepts for planning and executing a 5G RAN Deployment on OpenShift. The second part involves a practical scenario where you will deploy RAN-enabled OCP using ZTP technologies and methodologies.
+This lab will guide you through the deployment of a Telco 5G Core ready infrastructure following the Reference Design Specification (RDS) crafted by the Red Hat CNF team. The lab consists of two parts, the first part introduces essential concepts for planning and executing a 5G Core Deployment on OpenShift. The second part involves a practical scenario where you will deploy Telco Core-enabled OCP using ZTP technologies and methodologies.
 
 IMPORTANT: This is not an official Red Hat Training. Please, contact with your Red Hat representative if you want more information about Training or Guidelines about this topic / product.
 
@@ -83,9 +83,9 @@ image::showroom-app-9.png[Showroom App Web Browser Clipboard]
 |Lab Developer / Maintainer
 
 |Ian Miller
-|Lab Reviewer / CNF Developer
+|Lab Reviewer 
 
-|Juan Carlos Tovar
+|Frank Baudin
 |Lab Reviewer
 
 |Mario Vázquez
@@ -103,31 +103,7 @@ image::showroom-app-9.png[Showroom App Web Browser Clipboard]
 |Alberto Losada
 |Lab Developer / Maintainer
 
-|Ethan Siegel
-|Lab Contributor
-
-|Ian Miller
-|Lab Contributor / CNF Developer
-
 |Mario Vázquez
 |Lab Developer / Maintainer
-
-|Leo Ochoa
-|Lab Reviewer
-
-|Scott Collier
-|Lab Reviewer
-
-|Rob Fisher
-|Lab Reviewer
-
-|Federico Ferrando
-|Lab Reviewer
-
-|Daniel Munné
-|Lab Reviewer
-
-|John Herr
-|Lab Reviewer
 
 |===
