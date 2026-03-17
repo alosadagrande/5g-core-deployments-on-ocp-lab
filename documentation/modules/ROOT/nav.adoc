@@ -27,11 +27,12 @@
 ** xref:5g-core-context.adoc#storage[Persistent Storage]
 ** xref:5g-core-context.adoc#service-mesh[Service Mesh]
 
-* xref:sno-intro.adoc[Introduction to Single Node OpenShift (SNO)]
-** xref:sno-intro.adoc#5g-ran[5G Radio Access Network]
-** xref:sno-intro.adoc#things-keep-mind[Things to keep in mind]
-** xref:sno-intro.adoc#deployments[Deployments]
-** xref:sno-intro.adoc#extra-information[Extra information]
+* xref:mno-intro.adoc[Introduction to Multi-Node OpenShift (MNO)]
+** xref:mno-intro.adoc#telco-core-topology[Telco Core Cluster Topology]
+** xref:mno-intro.adoc#differences-from-standard-ocp[Differences from a Standard OCP Cluster]
+** xref:mno-intro.adoc#mno-requirements[Minimum Requirements]
+** xref:mno-intro.adoc#installation-methods[Installation Methods]
+** xref:mno-intro.adoc#extra-information[Extra Information]
 
 * xref:telco-related-infra-operators-intro.adoc[Introduction to Telco Related Infrastructure Operators]
 ** xref:telco-related-infra-operators-intro.adoc#node-tuning-operator[Node Tuning Operator]
