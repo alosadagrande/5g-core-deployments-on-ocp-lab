@@ -17,6 +17,6 @@ We will take a closer look at these components in the link:ztp-at-scale.html[Hub
 
 IMPORTANT: ZTP can operate in both connected and disconnected environments. In the connected case, clusters have direct access to the Internet. The disconnected case, which uses a private registry accessible within the customer's network, is the most common in the telecom environment, and will be used in this lab.
 
-ZTP provides support for deploying single node clusters, compact or three node clusters, and standard OpenShift clusters. This includes the installation of OpenShift and deployment of the distributed units (DUs) at scale. In this lab, we will focus on SNO clusters which was a topic discussed in link:sno-intro.html[Introduction to Single Node OpenShift (SNO)].
+ZTP provides support for deploying single node clusters, compact or three node clusters, and standard OpenShift clusters. This includes the installation of OpenShift and deployment of the cluster at scale. In this lab, we will focus on Multi-Node OpenShift (MNO) clusters, which was introduced in link:mno-intro.html[Introduction to Multi-Node OpenShift (MNO)].
 
 image::ztp_edge_framework.png[ZTP Edge Framework]

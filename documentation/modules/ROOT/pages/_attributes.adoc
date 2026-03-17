@@ -64,8 +64,6 @@ code:experimental:
 :cnf-features-policy-gen: https://github.com/open-cluster-management-io/policy-generator-plugin
 :cnf-features-clustersgo: https://github.com/openshift-kni/cnf-features-deploy/blob/release-4.20/ztp/siteconfig-generator/siteConfig/clusterCRsV1.go
 :cnf-features-siteconfig-plugin: https://github.com/openshift-kni/cnf-features-deploy/tree/release-4.20/ztp/siteconfig-generator-kustomize-plugin
-
-
 :cnf-features-policygen-plugin: https://github.com/open-cluster-management-io/policy-generator-plugin
 :rhacm-governance-doc: https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.15/html/governance/governance
 :ocp-cli-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/cli_tools/openshift-cli-oc#cli-about-cli_cli-developer-commands
@@ -75,13 +73,11 @@ code:experimental:
 :talm-cluster-upgrades-doc: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/cnf-talm-for-cluster-updates
 :talm-upstream-project: https://github.com/openshift-kni/cluster-group-upgrades-operator
 :talm-recovery-from-failed-upgrade-doc: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-upgrade-for-single-node-openshift-clusters#ztp-image-based-upgrade-procedure-cancel_ztp-gitops
-:talm-precachingconfig-doc: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/managing-cluster-policies-with-policygenerator-resources#talm-prechache-user-specified-images-concept_ztp-talm-pg
 :workload-hints-doc: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/cnf-understanding-low-latency
 :ztp-gitops-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/ztp-preparing-the-hub-cluster
 :nto-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/using-node-tuning-operator
 :sriov-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/networking/hardware-networks#about-sriov
 :sriov-supported-nics: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/networking/hardware-networks#supported-devices_about-sriov
-:ptp-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/networking/using-precision-time-protocol-hardware#about-ptp
 :workload-partitioning-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/enabling-workload-partitioning
 :advanced-ztp-policy-config: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/managing-cluster-policies-with-policygentemplate-resources#ztp-adding-new-content-to-gitops-ztp_ztp-advanced-policy-config
 :ztp-precaching-config-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/managing-cluster-policies-with-policygentemplate-resources#talm-prechache-user-specified-images-concept_ztp-talm
@@ -89,23 +85,13 @@ code:experimental:
 :cluster-compare-tool-link: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/comparing-cluster-configurations
 :ssh-pub-key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC5pFKFLOuxrd9Q/TRu9sRtwGg2PV+kl2MHzBIGUhCcR0LuBJk62XG9tQWPQYTQ3ZUBKb6pRTqPXg+cDu5FmcpTwAKzqgUb6ArnjECxLJzJvWieBJ7k45QzhlZPeiN2Omik5bo7uM/P1YIo5pTUdVk5wJjaMOb7Xkcmbjc7r22xY54cce2Wb7B1QDtLWJkq++eJHSX2GlEjfxSlEvQzTN7m2N5pmoZtaXpLKcbOqtuSQSVKC4XPgb57hgEs/ZZy/LbGGHZyLAW5Tqfk1JCTFGm6Q+oOd3wAOF1SdUxM7frdrN3UOB12u/E6YuAx3fDvoNZvcrCYEpjkfrsjU91oz78aETZV43hOK9NWCOhdX5djA7G35/EMn1ifanVoHG34GwNuzMdkb7KdYQUztvsXIC792E2XzWfginFZha6kORngokZ2DwrzFj3wgvmVyNXyEOqhwi6LmlsYdKxEvUtiYhdISvh2Y9GPrFcJ5DanXe7NVAKXe5CyERjBnxWktqAPBzXJa36FKIlkeVF5G+NWgufC6ZWkDCD98VZDiPP9sSgqZF8bSR4l4/vxxAW4knKIZv11VX77Sa1qZOR9Ml12t5pNGT7wDlSOiDqr5EWsEexga/2s/t9itvfzhcWKt+k66jd8tdws2dw6+8JYJeiBbU63HBjxCX+vCVZASrNBjiXhFw==
 :sriov-channel: stable
-:ptp-channel: stable
 :cluster-logging-channel: stable-6.4
-:ibu-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-upgrade-for-single-node-openshift-clusters#cnf-understanding-image-based-upgrade
-:ibu-var-lib-containers: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-upgrade-for-single-node-openshift-clusters#cnf-image-based-upgrade-shared-container-partition_shared-container-partition
-:ibu-oadp: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/backup_and_restore/oadp-application-backup-and-restore#oadp-introduction
-:ibu-oadp-prereq: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-upgrade-for-single-node-openshift-clusters#cnf-image-based-upgrade-prep-oadp_cnf-non-gitops
-:ibi-minimum-software: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-installation-for-single-node-openshift#ztp-image-based-upgrade-prereqs_ibi-understanding-image-based-install
-:ibi-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-installation-for-single-node-openshift#ibi-understanding-image-based-install
-:ibi-openshift-install: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-installation-for-single-node-openshift#ibi-edge-image-based-install
 :ai-workflow: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/ztp-deploying-far-edge-sites#ztp-deploying-a-site_ztp-deploying-far-edge-sites
-:seed-guidelines: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-installation-for-single-node-openshift#seed-cluster-guidelines
-:seed-prereq-software: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-installation-for-single-node-openshift#ztp-image-based-upgrade-prereqs_ibi-understanding-image-based-install
-:seed-prereq-config: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-installation-for-single-node-openshift#ibi-preparing-for-image-based-install
-:seed-extramanifests: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-installation-for-single-node-openshift#ibi-create-extra-manifest-configmap_ibi-edge-image-based-install
-:seed-prereq-config-du-profile: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-installation-for-single-node-openshift#ztp-image-based-upgrade-seed-image-config-ran_ibi-preparing-image-based-install
-:lca-seed-cluster-guidelines: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-installation-for-single-node-openshift#ibi-understanding-image-based-install
-:lca-ibu-stages: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-upgrade-for-single-node-openshift-clusters#cnf-image-based-upgrade_understanding-image-based-upgrade
-:lca-backup-restore: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-upgrade-for-single-node-openshift-clusters#cnf-understanding-image-based-upgrade
 :talm-ibgu-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-upgrade-for-single-node-openshift-clusters#ztp-image-based-upgrade
+:core-rds-link: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/telco-core-ref-design-specs
+:metallb-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/networking/load-balancing-with-metallb
+:nmstate-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/networking/kubernetes-nmstate
+:nrop-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/scheduling-numa-aware-workloads
+:odf-docs: https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19/html/planning_your_deployment
+:cno-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/networking/cluster-network-operator
 :last-update-date: 2026-03-17

@@ -1,22 +1,22 @@
-= Introduction to Telco Related Infrastructure Operators
+= Introduction to Telco Core Infrastructure Operators
 include::_attributes.adoc[]
-:profile: 5g-ran-lab
+:profile: 5g-core-lab
 
-When working on RAN environments there are a set of operators that will be common to almost all of them. In this section we will introduce the various OpenShift Container Platform components that you use to configure and deploy clusters to run telco RAN DU workloads.
+When working on Telco Core environments there are a set of operators that will be common to almost all of them. In this section we will introduce the various OpenShift Container Platform components that you use to configure and deploy clusters to run telco core workloads, including control plane functions (signaling, aggregation, session border controller) and centralized data plane functions such as the 5G User Plane Function (UPF). You can read the full {core-rds-link}[Telco Core Reference Design Specification (RDS)] for details.
 
-image::ran-du-components.png[Telco RAN DU RDS components]
+image::telco-related-infra-operators.png[Telco Related Infrastructure Operators]           
 
 [#node-tuning-operator]
 == Node Tuning Operator
 
-The Node Tuning Operator helps you manage node-level tuning by orchestrating the TuneD daemon and other OS level tuning. In the context of RAN deployments it is used to achieve low latency performance by using the Performance Profile controller.
+The Node Tuning Operator helps you manage node-level tuning by orchestrating the TuneD daemon and other OS-level tuning. In the context of Telco Core deployments, it is used to configure CPU partitioning and performance tuning through the Performance Profile controller.
 
-In RAN environments we will leverage the PerformanceProfile API in order to:
+Unlike RAN deployments, Telco Core clusters run the stock (non-realtime) kernel. The `PerformanceProfile` API is used to:
 
-* Update the kernel to kernel-rt.
-* Configure CPUs for housekeeping (reserved CPUs).
-* Configure CPUs for running workloads (isolated CPUs).
-* Configure workloadHints to enable tuning of power savings vs performance. {workload-hints-doc}[More here].
+* Partition CPUs into reserved (for OS and platform overhead) and isolated (for high-performance workload) sets.
+* Enable Guaranteed QoS scheduling for latency-sensitive CNFs such as DPDK-based UPFs.
+* Configure IRQ load balancing — `globallyDisableIrqLoadBalancing` is set to `false` so that IRQ balancing remains globally enabled, while individual pods annotate CPUs for isolation.
+* Configure huge pages for DPDK applications that require pre-allocated large memory pages.
 
 The Node Tuning Operator is part of the standard OpenShift installation.
 
@@ -25,61 +25,85 @@ You can read more about the NTO {nto-docs}[here].
 [#sriov-operator]
 == SR-IOV Operator
 
-This Operator helps you manage SR-IOV network devices and network attachments. You can think of an SR-IOV NIC like a hypervisor for NICs, you have a physical NIC and you can create (a limited number of) virtualized NICs out of it.
+This Operator helps you manage SR-IOV network devices and network attachments. SR-IOV allows a single physical NIC (Physical Function) to be divided into multiple Virtual Functions (VFs), each of which can be assigned directly to a pod for near-native network performance.
 
-We usually refer to this virtualized NICs as virtual functions (VFs), and these are exposed in the containers in order to provide extra networks to workloads. These VFs are "slices" of the underlying NIC which are passed into the container as hardware devices. This allows the container direct access to that "slice" of the NIC and is typically used to provide high performance access to networking.
+In Telco Core, SR-IOV VFs are exposed to pods in two modes:
+
+* `netdevice` driver — a regular kernel network device visible inside the pod's network namespace, used for signaling and control-plane traffic.
+* `vfio-pci` driver — a character device for DPDK applications running in user space, used for high-throughput user-plane (UPF) traffic.
+
+The SR-IOV Network Operator provisions and manages SR-IOV CNI, the network device plugin, and other components of the SR-IOV stack.
 
 You can read more about the SR-IOV operator {sriov-docs}[here].
 
-[#ptp-operator]
-== PTP Operator
+[#metallb-operator]
+== MetalLB Load Balancer
 
-Precision Time Protocol (PTP) is used to synchronize clocks in a network, as discussed xref:5g-ran-context.adoc#ptp[previously]. When used in conjunction with hardware support, PTP is capable of sub-microsecond accuracy, and is more accurate than Network Time Protocol (NTP).
+MetalLB is a load-balancer implementation for bare-metal Kubernetes clusters that uses standard routing protocols. It enables a Kubernetes Service to obtain an external IP address that is also added to the host network, making the service reachable from outside the cluster.
 
-The PTP Operator can be used to configure PTP on OpenShift nodes.
+In Telco Core deployments MetalLB operates exclusively in BGP mode. Key resources used to configure it are:
 
-Some extra PTP information you may find useful:
+* `IPAddressPool` — defines the pool of external IP addresses MetalLB can assign.
+* `BGPPeer` — establishes a BGP peering session with a top-of-rack router, one per VLAN interface.
+* `BGPAdvertisement` — controls which address pools are advertised to which BGP peers, enabling service traffic separation per VLAN.
+* `BFDProfile` — configures Bidirectional Forwarding Detection for faster link-failure detection.
 
-* {ptp-docs}[PTP Operator Official Docs].
-* PTP blog posts on cloud.redhat.com https://cloud.redhat.com/blog/delivering-high-precision-clock-synchronization-for-low-latency-5g-networks-with-openshift-part-1[part 1] and https://cloud.redhat.com/blog/delivering-high-accuracy-clock-synchronization-for-5g-networks-with-openshift-part-2[part 2].
+The MetalLB Operator deploys and manages the lifecycle of a MetalLB instance in the cluster.
 
-[#accelerators-operators]
-== Accelerators Operators
+You can read more about MetalLB {metallb-docs}[here].
 
-Specialized hardware devices can be used to accelerate 4G/LTE and 5G virtualized radio access networks (vRAN) workloads. The use of these devices increases the overall compute capacity of a commercial, off-the-shelf platform by offloading compute intensive tasks to dedicated hardware.
+[#nmstate-operator]
+== NMState Operator
 
-In order to manage these devices, there are multiple accelerator operators that we may need to deploy in our OpenShift clusters.
+The Kubernetes NMState Operator provides a Kubernetes API for performing state-driven network configuration across cluster nodes using `NodeNetworkConfigurationPolicy` (NNCP) CRs. It is required in Telco Core clusters to configure the multi-layer networking topology defined by the RDS.
+
+Typical configurations managed by the NMState Operator include:
+
+* Linux bond interfaces in active-active LACP mode (IEEE 802.3ad).
+* VLAN interfaces on top of the bond, used for cluster traffic, storage, and service separation.
+* Static routes to ensure pod egress traffic is correctly steered through the appropriate VLAN gateway.
+* MTU settings and promiscuous mode on secondary interfaces.
+* SR-IOV VF interfaces (VLAN tagging, MTU) when VFs are used for host networking.
+
+Initial networking configuration at installation time is applied via `NMStateConfig` content in the installation CRs. The NMState Operator is used for any subsequent Day 2 network updates.
+
+You can read more about the NMState operator {nmstate-docs}[here].
+
+[#numa-resources-operator]
+== NUMA Resources Operator
+
+Telco Core clusters are deployed on servers with multi-NUMA architectures. The default Kubernetes scheduler only considers the total free resources across an entire node, which can cause pods to be admitted to a node where no single NUMA node can satisfy the resource request, resulting in a local admission failure.
+
+The NUMA Resources Operator (NROP) solves this by deploying a topology-aware scheduler that understands NUMA locality. All Telco Core clusters with multi-NUMA worker nodes are required to deploy NROP.
+
+Key capabilities:
+
+* Deploys a secondary topology-aware scheduler alongside the default Kubernetes scheduler.
+* Works in conjunction with the `PerformanceProfile` CR to enforce NUMA-aligned CPU and memory allocation for Guaranteed QoS pods.
+* Supports schedulable control planes — NROP is supported for use on control plane nodes.
+
+You can read more about the NUMA Resources Operator {nrop-docs}[here].
 
 [#cluster-logging-operator]
 == Cluster Logging Operator
 
-The Logging Operator provides APIs to control collection and forwarding of logs from all pods and nodes in a cluster. This includes application logs (from regular pods), infrastructure logs (from system pods and node logs), and audit logs (special node logs with legal/security implications). In telco RAN DU configurations, logging collects logs from far-edge nodes for remote analysis.
+The Logging Operator provides APIs to control the collection and forwarding of logs from all pods and nodes in a cluster. This includes application logs (from regular pods), infrastructure logs (from system pods and node logs), and audit logs (special node logs with legal/security implications).
 
-The Logging Operator does not collect or forward logs itself; it starts, configures, monitors, and manages components that perform these tasks. Note that in the RAN use model, the Fluentd log collector is deprecated in favor of the Vector log collector.
+In Telco Core configurations, the reference design uses Kafka to ship audit and infrastructure logs to a remote archive for analysis. The Logging Operator starts, configures, monitors, and manages the Vector log collector components that perform these tasks.
 
-[#lifecycle-operator]
-== Lifecycle Agent Operator
-
-The Lifecycle Agent provides local lifecycle management services for single-node OpenShift clusters. It is not applicable in multi-node clusters or single-node OpenShift clusters with an additional worker.
-
-Starting with OpenShift Container Platform 4.14.13, the Lifecycle Agent offers an alternative method for upgrading platform versions in single-node OpenShift clusters. The image-based upgrade is faster than standard methods and allows direct upgrades from OpenShift Container Platform <4.y> to <4.y+2>, and <4.y.z> to <4.y.z+n>. 
-
-You can read more about the image-based upgrade technology {ibu-docs}[here].
+NOTE: The reference configuration does not include shipping of application logs by default. Including application logs requires evaluating the application logging rate and allocating sufficient additional CPU resources to the reserved set.
 
 [#storage-operator]
 == Storage Operators
 
-LVM Storage can be used as the local storage implementation for the RAN DU use case. When LVM Storage is used as the storage solution, it replaces the Local Storage Operator, with CPU resources assigned to the management partition as platform overhead.
+Telco Core applications require highly available persistent storage. The reference solution is OpenShift Data Foundation (ODF) deployed in _external mode_, where ODF connects to a dedicated Red Hat Ceph Storage cluster running outside the application OpenShift cluster.
 
-LVM Storage provides dynamic provisioning of block and file storage. Logical volumes created from local devices can be used as PVC resources by applications. Volume expansion and snapshots are also supported.
+External mode is the preferred storage configuration for Telco Core deployments for several reasons:
 
-[#oadp-operator]
-== OpenShift API for Data Protection Operator
+* The external Ceph Storage cluster can be shared across multiple OpenShift clusters deployed in the same region.
+* OpenShift Container Platform and Ceph Storage can be updated independently, decoupling their lifecycle management.
+* Storage and OpenShift platform operations responsibilities are cleanly separated, which is a typical requirement for telco core use cases.
 
-The OpenShift API for Data Protection (OADP) safeguards customer applications on OpenShift Container Platform. It offers disaster recovery protection for applications, application-related cluster resources, persistent volumes, and internal images.
+ODF supports separation of storage traffic using secondary CNI networks. Storage network traffic must be isolated on a dedicated VLAN and must not be routable from other cluster networks.
 
-IMPORTANT: OADP does not serve as a disaster recovery solution for etcd or OpenShift Operators.
-
-OADP support is provided for customer workload namespaces and cluster scope resources. It is especially critical during image-based upgrades when backups of customer and cluster resources are needed prior to upgrading, followed by restoration once upgrades are completed.
-
-You can read more about the OADP operator {ibu-oadp}[here].
+You can read more about OpenShift Data Foundation {odf-docs}[here].
