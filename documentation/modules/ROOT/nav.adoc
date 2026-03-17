@@ -60,7 +60,6 @@
 ** xref:ztp-at-scale.adoc#rhacm[Red Hat Advanced Cluster Management]
 *** xref:ztp-at-scale.adoc#mce[Multicluster Engine]
 *** xref:ztp-at-scale.adoc#siteconfig[SiteConfig Operator]
-*** xref:ztp-at-scale.adoc#ibio[Image Based Install Operator]
 *** xref:ztp-at-scale.adoc#ai[Infrastructure Operator]
 ** xref:ztp-at-scale.adoc#gitops-operator[GitOps Operator]
 *** xref:ztp-at-scale.adoc#sitegen[SiteGen]
