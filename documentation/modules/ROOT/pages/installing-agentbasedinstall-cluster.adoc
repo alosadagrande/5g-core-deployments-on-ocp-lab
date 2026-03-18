@@ -263,20 +263,20 @@ spec:
   clusterNetwork:
     - cidr: "10.128.0.0/14"
       hostPrefix: 23
-#    - cidr: 1001:1::/48
-#      hostPrefix: 64
+    - cidr: fd01::/48
+      hostPrefix: 64
   apiVIPs:
     - 192.168.125.29
-#    - 1111:2222:3333:4444::1:1
+    - 2620:52:0:1305::29
   ingressVIPs:
     - 192.168.125.28
-#    - 1111:2222:3333:4444::1:2
+    - 2620:52:0:1305::28
   serviceNetwork:
     - cidr: "172.30.0.0/16"
-#    - cidr: 1001:2::/112
+    - cidr: fd02::/112
   machineNetwork:
     - cidr: "192.168.125.0/24"
-#    - cidr: 1111:2222:3333:4444::/64
+    - cidr: 2620:52:0:1305::/64
   additionalNTPSources:
     - "clock.corp.redhat.com"
   templateRefs:
@@ -307,17 +307,26 @@ spec:
                   prefix-length: 24
                 enabled: true
               ipv6:
-                enabled: false
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::30
+                    prefix-length: 64
           dns-resolver:
             config:
               server:
               - 192.168.125.1
+              - 2620:52:0:1305::1
           routes:
             config:
             - destination: 0.0.0.0/0
               next-hop-interface: enp3s0
               next-hop-address: 192.168.125.1
               table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
       templateRefs:
         - name: ai-node-templates-v1
           namespace: open-cluster-management
@@ -345,17 +354,26 @@ spec:
                   prefix-length: 24
                 enabled: true
               ipv6:
-                enabled: false
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::31
+                    prefix-length: 64
           dns-resolver:
             config:
               server:
               - 192.168.125.1
+              - 2620:52:0:1305::1
           routes:
             config:
             - destination: 0.0.0.0/0
               next-hop-interface: enp3s0
               next-hop-address: 192.168.125.1
               table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
       templateRefs:
         - name: ai-node-templates-v1
           namespace: open-cluster-management
@@ -383,17 +401,26 @@ spec:
                   prefix-length: 24
                 enabled: true
               ipv6:
-                enabled: false
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::32
+                    prefix-length: 64
           dns-resolver:
             config:
               server:
               - 192.168.125.1
+              - 2620:52:0:1305::1
           routes:
             config:
             - destination: 0.0.0.0/0
               next-hop-interface: enp3s0
               next-hop-address: 192.168.125.1
               table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
       templateRefs:
         - name: ai-node-templates-v1
           namespace: open-cluster-management
@@ -423,17 +450,26 @@ spec:
                   prefix-length: 24
                 enabled: true
               ipv6:
-                enabled: false
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::33
+                    prefix-length: 64
           dns-resolver:
             config:
               server:
               - 192.168.125.1
+              - 2620:52:0:1305::1
           routes:
             config:
             - destination: 0.0.0.0/0
               next-hop-interface: enp3s0
               next-hop-address: 192.168.125.1
               table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
       templateRefs:
         - name: ai-node-templates-v1
           namespace: open-cluster-management
@@ -463,17 +499,26 @@ spec:
                   prefix-length: 24
                 enabled: true
               ipv6:
-                enabled: false
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::34
+                    prefix-length: 64
           dns-resolver:
             config:
               server:
               - 192.168.125.1
+              - 2620:52:0:1305::1
           routes:
             config:
             - destination: 0.0.0.0/0
               next-hop-interface: enp3s0
               next-hop-address: 192.168.125.1
               table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
       templateRefs:
         - name: ai-node-templates-v1
           namespace: open-cluster-management
@@ -503,17 +548,26 @@ spec:
                   prefix-length: 24
                 enabled: true
               ipv6:
-                enabled: false
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::35
+                    prefix-length: 64
           dns-resolver:
             config:
               server:
               - 192.168.125.1
+              - 2620:52:0:1305::1
           routes:
             config:
             - destination: 0.0.0.0/0
               next-hop-interface: enp3s0
               next-hop-address: 192.168.125.1
               table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
       templateRefs:
         - name: ai-node-templates-v1
           namespace: open-cluster-management
@@ -543,17 +597,26 @@ spec:
                   prefix-length: 24
                 enabled: true
               ipv6:
-                enabled: false
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::36
+                    prefix-length: 64
           dns-resolver:
             config:
               server:
               - 192.168.125.1
+              - 2620:52:0:1305::1
           routes:
             config:
             - destination: 0.0.0.0/0
               next-hop-interface: enp3s0
               next-hop-address: 192.168.125.1
               table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
       templateRefs:
         - name: ai-node-templates-v1
           namespace: open-cluster-management
@@ -583,17 +646,26 @@ spec:
                   prefix-length: 24
                 enabled: true
               ipv6:
-                enabled: false
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::37
+                    prefix-length: 64
           dns-resolver:
             config:
               server:
               - 192.168.125.1
+              - 2620:52:0:1305::1
           routes:
             config:
             - destination: 0.0.0.0/0
               next-hop-interface: enp3s0
               next-hop-address: 192.168.125.1
               table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
       templateRefs:
         - name: ai-node-templates-v1
           namespace: open-cluster-management
@@ -623,17 +695,26 @@ spec:
                   prefix-length: 24
                 enabled: true
               ipv6:
-                enabled: false
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::38
+                    prefix-length: 64
           dns-resolver:
             config:
               server:
               - 192.168.125.1
+              - 2620:52:0:1305::1
           routes:
             config:
             - destination: 0.0.0.0/0
               next-hop-interface: enp3s0
               next-hop-address: 192.168.125.1
               table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
       templateRefs:
         - name: ai-node-templates-v1
           namespace: open-cluster-management
@@ -663,17 +744,26 @@ spec:
                   prefix-length: 24
                 enabled: true
               ipv6:
-                enabled: false
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::39
+                    prefix-length: 64
           dns-resolver:
             config:
               server:
               - 192.168.125.1
+              - 2620:52:0:1305::1
           routes:
             config:
             - destination: 0.0.0.0/0
               next-hop-interface: enp3s0
               next-hop-address: 192.168.125.1
               table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
       templateRefs:
         - name: ai-node-templates-v1
           namespace: open-cluster-management
@@ -703,17 +793,26 @@ spec:
                   prefix-length: 24
                 enabled: true
               ipv6:
-                enabled: false
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::40
+                    prefix-length: 64
           dns-resolver:
             config:
               server:
               - 192.168.125.1
+              - 2620:52:0:1305::1
           routes:
             config:
             - destination: 0.0.0.0/0
               next-hop-interface: enp3s0
               next-hop-address: 192.168.125.1
               table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
       templateRefs:
         - name: ai-node-templates-v1
           namespace: open-cluster-management
@@ -743,17 +842,26 @@ spec:
                   prefix-length: 24
                 enabled: true
               ipv6:
-                enabled: false
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::41
+                    prefix-length: 64
           dns-resolver:
             config:
               server:
               - 192.168.125.1
+              - 2620:52:0:1305::1
           routes:
             config:
             - destination: 0.0.0.0/0
               next-hop-interface: enp3s0
               next-hop-address: 192.168.125.1
               table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
       templateRefs:
         - name: ai-node-templates-v1
           namespace: open-cluster-management
