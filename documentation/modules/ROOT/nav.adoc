@@ -67,10 +67,7 @@
 ** xref:ztp-at-scale.adoc#talm[Topology Aware Lifecycle Manager]
 
 * xref:ztp-workflow.adoc[ZTP Workflow]
-** xref:ztp-workflow.adoc#deployment-methods[Single-Node OpenShift Deployments]
-*** xref:ztp-workflow.adoc#abi-deployment[Agent Based Installation]
-*** xref:ztp-workflow.adoc#ibi-deployment[Image Based Installation]
-**** xref:ztp-workflow.adoc#ibi-deploy-components[Image Based Installation and Deployment Components]
+** xref:ztp-workflow.adoc#deployment-methods[Multi-Node OpenShift Deployments]
 ** xref:ztp-workflow.adoc#ztp-policies[Deployment Configuration]
 ** xref:ztp-workflow.adoc#takeaways[Takeaways]
 
