@@ -89,7 +89,6 @@
 *** xref:talm.adoc#autocreation-cgu[Auto Creation of CGUs]
 ** xref:talm.adoc#phase-labels[Phase labels]
 ** xref:talm.adoc#waves[Policy Waves]
-** xref:talm.adoc#sno-upgrades-at-scale[SNO Upgrades at Scale]
 
 * xref:policygen-deepdive.adoc[PolicyGen Deepdive]
 ** xref:policygen-deepdive.adoc#policygen-implementation[PolicyGen Implementation]
