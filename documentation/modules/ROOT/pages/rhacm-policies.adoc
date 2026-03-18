@@ -1,8 +1,8 @@
 = RHACM Governance Policy Framework
 include::_attributes.adoc[]
-:profile: 5g-ran-lab
+:profile: 5g-core-lab
 
-As we mentioned in the link:ztp-workflow.html[ZTP Workflow] section, the Red Hat Advanced Cluster Management (RHACM) for Kubernetes allows us to _provision_ and _configure_ multiple clusters in a declarative way and can be easily coupled with GitOps. ZTP and ongoing configuration updates makes intensive use of RHACM Policies for managing the configuration of deployed clusters. In our telco use case, creation of these `Policies` is simplified with the policyGen kustomize plugin. This plugin translates the {rds-config}[Telco RAN DU reference configuration] based on `PolicyGenerators` into multiple `Policies` that are understood by the hub cluster and applied to the managed clusters.
+As we mentioned in the link:ztp-workflow.html[ZTP Workflow] section, the Red Hat Advanced Cluster Management (RHACM) for Kubernetes allows us to _provision_ and _configure_ multiple clusters in a declarative way and can be easily coupled with GitOps. ZTP and ongoing configuration updates makes intensive use of RHACM Policies for managing the configuration of deployed clusters. In our telco use case, creation of these `Policies` is simplified with the policyGen kustomize plugin. This plugin translates the {core-rds-link}[Telco Core reference configuration] based on `PolicyGenerators` into multiple `Policies` that are understood by the hub cluster and applied to the managed clusters.
 
 In this section, we provide an introduction to the concepts behind the {rhacm-governance-doc}[RHACM "Governance" pillar]. Furthermore, we are going to introduce the concept of a policy, which is key for managing the configuration lifecycle of our fleet of clusters.
 
@@ -49,8 +49,8 @@ metadata:
     policy.open-cluster-management.io/standards: NIST SP 800-53
   labels:
     app.kubernetes.io/instance: policies
-  name: sno-worker-0-performance-policy
-  namespace: ztp-sno-worker-0-policies
+  name: common-core-config-policy
+  namespace: ztp-policies
 spec:
   remediationAction: inform         # [inform/enforce] If set, it defines the remediationAction globally.
   disabled: false                   # [true/false] If true, the policy will not be distributed to the managed cluster.
@@ -59,7 +59,7 @@ spec:
       apiVersion: policy.open-cluster-management.io/v1
       kind: ConfigurationPolicy
       metadata:
-        name: sno-worker-0-performance-policy-config
+        name: common-core-config-policy
       spec:
         evaluationInterval:
           compliant: 10m
@@ -75,11 +75,16 @@ spec:
             apiVersion: performance.openshift.io/v2
             kind: PerformanceProfile
             metadata:
-              name: openshift-node-performance-profile
+              name: performance-rds-core-0
+            annotations:
+              kubeletconfig.experimental: |
+              {
+              "allowedUnsafeSysctls":["net.ipv6.conf.all.accept_ra"],
+              "systemReserved":{"memory":"11Gi"}
+              }
             spec:
               additionalKernelArgs:
-                - rcupdate.rcu_normal_after_boot=0
-                - efi=runtime
+              - module_blacklist=irdma
               cpu:
                 isolated: 2-39,42-79
                 reserved: 0-1,40-41
@@ -89,13 +94,21 @@ spec:
                   - count: 32
                     size: 1G
               machineConfigPoolSelector:
-                pools.operator.machineconfiguration.openshift.io/master: ""
+                pools.operator.machineconfiguration.openshift.io/worker-0: ""
               nodeSelector:
-                node-role.kubernetes.io/master: ""
+                node-role.kubernetes.io/worker-0: ""
               numa:
-                topologyPolicy: restricted
+                topologyPolicy: single-numa-node
               realTimeKernel:
-                enabled: true
+                enabled: false
+              net:
+                userLevelNetworking: false
+              globallyDisableIrqLoadBalancing: false
+              workloadHints:
+                realTime: true
+                highPowerConsumption: false
+                perPodPowerManagement: true
+                realTime: false
         remediationAction: inform
         severity: low
 -----
@@ -108,16 +121,16 @@ The PlacementBinding CRD is used to bind the Policy with a PlacementRule. Only a
 apiVersion: policy.open-cluster-management.io/v1
 kind: PlacementBinding
 metadata:
-  name: sno-worker-0-placementbinding
-  namespace: ztp-sno-worker-0-policies
+  name: common-core-config-placementbinding
+  namespace: ztp-policies
 placementRef:
   apiGroup: apps.open-cluster-management.io
   kind: PlacementRule
-  name: sno-worker-0-placementrules
+  name: common-core-config-placementrules
 subjects:
 - apiGroup: policy.open-cluster-management.io
   kind: Policy
-  name: sno-worker-0-performance-policy
+  name: common-core-config-policy
 -----
 
 The PlacementRule CRD is used to determine the target clusters to distribute policies to. The PlacementRule can match clusters based on labels applied to the ManagedCluster CR on the hub cluster. Each target (spoke) cluster under management by RHACM on the hub cluster will have a corresponding ManagedCluster CR. View the following example specification of a PlacementRule object:
@@ -128,15 +141,19 @@ The PlacementRule CRD is used to determine the target clusters to distribute pol
 apiVersion: apps.open-cluster-management.io/v1
 kind: PlacementRule
 metadata:
-  name: sno-worker-0-placementrules
-  namespace: ztp-sno-worker-0-policies
+  name: common-core-config-placementrules
+  namespace: ztp-policies
 spec:
   clusterSelector:
     matchExpressions:
-    - key: name
+    - key: common
       operator: In
       values:
-      - sno-worker-0
+      - ocp420
+    - key: rds
+      operator: In
+      values:
+      - core
   clusterConditions:
   - status: "True"
     type: ManagedClusterConditionAvailable
