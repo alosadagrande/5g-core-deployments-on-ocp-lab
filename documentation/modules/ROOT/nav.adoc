@@ -83,12 +83,6 @@
 ** xref:managing-at-scale.adoc#olm-subscriptions[OLM Subscriptions]
 ** xref:managing-at-scale.adoc#cluster-policies[Cluster Policies]
 
-* xref:lca.adoc[Lifecycle Agent Operator (LCA)]
-** xref:lca.adoc#seed-image-generation[Seed Image Generation]
-** xref:lca.adoc#image-based-installation[Image Based Installation]
-** xref:lca.adoc#image-based-upgrades[Image Based Upgrades]
-** xref:lca.adoc#image-based-upgrades-at-scale[Image Based Upgrades at Scale]
-
 * xref:talm.adoc[Topology Aware Lifecycle Manager (TALM)]
 ** xref:talm.adoc#inform-policies[Default Inform Policies]
 ** xref:talm.adoc#cgu[Cluster Group Upgrade]
