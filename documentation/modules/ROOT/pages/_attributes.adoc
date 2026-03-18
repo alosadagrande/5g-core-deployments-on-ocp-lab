@@ -47,7 +47,7 @@ code:experimental:
 :talm-update-policy-name: version-420-1
 :rhacm-version: v2.15
 :multicluster-policygenerator-version: v2.15.1-1
-:rhacm-template-processing: https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.14/html/governance/governance#template-processing
+:rhacm-template-processing: https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.15/html/governance/governance#template-processing
 :mce-version: v2.10
 :ztp-generator-version: v4.20
 :argocd-hub-link: https://openshift-gitops-server-openshift-gitops.apps.hub.5g-deployment.lab
