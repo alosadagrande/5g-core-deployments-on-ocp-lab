@@ -89,6 +89,10 @@ code:experimental:
 :ai-workflow: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/ztp-deploying-far-edge-sites#ztp-deploying-a-site_ztp-deploying-far-edge-sites
 :talm-ibgu-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-upgrade-for-single-node-openshift-clusters#ztp-image-based-upgrade
 :core-rds-link: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/telco-core-ref-design-specs
+:core-rds-components: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/telco-core-ref-design-specs#telco-core-rds-components_telco-core
+:core-source-crs: https://github.com/openshift-kni/telco-reference/tree/release-4.20/telco-core/configuration/reference-crs
+:core-extra-manifests: https://github.com/openshift-kni/telco-reference/blob/release-4.20/telco-core/install/extra-manifests
+:core-custom-manifests: https://github.com/openshift-kni/telco-reference/blob/release-4.20/telco-core/install/custom-manifests
 :metallb-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/networking/load-balancing-with-metallb
 :nmstate-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/networking/kubernetes-nmstate
 :nrop-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/scheduling-numa-aware-workloads

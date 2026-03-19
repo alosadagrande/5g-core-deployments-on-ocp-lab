@@ -62,175 +62,196 @@ The policygenerator plugin reads the PolicyGenerator manifests and uses the info
 
 IMPORTANT: A high level view of the installation and configuration workflow can be found in the previous section link:ztp-workflow.html[ZTP workflow].
 
-[#5g-ran-profile]
-== 5G RAN Profile
+[#telco-core-profile]
+== Telco Core Profile
 
-The Red Hat CNF team has crafted specific configurations to improve the performance on clusters running RAN workloads. All the configurations described below are expected to be present in a cluster where RAN workloads are expected to run.
+The Red Hat CNF team has crafted specific configurations to run large-scale telco applications on OpenShift Container Platform clusters. These include control plane functions such as signaling and aggregation, as well as centralized data plane functions like 5G User Plane Functions (UPF). All the configurations described below are expected to be present in a cluster running Telco Core workloads.
 
-TIP: Some of these configurations are configured at install time (through the use of extra-manifests during the installation) and others are configured through Policy automatically after the cluster joins the RHACM Hub.
+TIP: Some of these configurations are applied at install time (through the use of extra-manifests) and others are configured through Policy automatically after the cluster joins the RHACM Hub.
 
-image::pgt_ran_du_profile.png[validated vRAN DU profile]
+image::5g-core-networking.png[Telco Core reference design networking topology]
 
-Above picture describes what areas are covered by the 5G Ran profile. Red Hat covers all layers but the two on the top which are part of the application domain. Below the different 5G RAN profile configurations are described.
+The picture above describes the networking topology covered by the Telco Core profile. A more in-depth explanation is covered in the {core-rds-components}[Telco Core reference design components].
 
-A more in-detail explanation of the 5G RAN Profile is covered in the {rds-components}[Telco RAN DU reference design components].
+[#cpu-partitioning]
+=== CPU Partitioning and Performance Tuning
 
-[#workload-partitioning]
-=== Workload Partitioning
+CPU partitioning improves performance and reduces latency by separating sensitive workloads from general-purpose tasks, interrupts, and driver work queues. Unlike the RAN DU profile, Telco Core clusters use the standard (non-realtime) kernel with IRQ balancing enabled on worker nodes.
 
-Pins OCP platform, operating system processes and day2 operator Pods that are part of the DU profile to the reserved cpuset.
+IMPORTANT: CPU partitioning must be configured during the initial day-zero cluster installation and cannot be enabled or changed afterwards.
 
-Starting in OCP4.14+ this gets configured in the `PerformanceProfile` managed by the Node Tuning Operator.
+Key capabilities:
 
-[#kubelet-tuning]
-=== Kubelet Tuning
+* Enables kubelet features: cpu manager, topology manager, memory manager.
+* Configures reserved and isolated cpusets.
+* Configures huge pages.
+* Supports per-pod power management via C-states for latency-sensitive workloads.
 
-Reduce frequency of kubelet housekeeping and eviction monitoring to reduce CPU usage.
+{core-source-crs}/required/performance/PerformanceProfile.yaml[PerformanceProfile Manifest]
 
-{cnf-features-source-crs}/extra-manifest/01-container-mount-ns-and-kubelet-conf-master.yaml[Manifest]
+[#power-management]
+=== Power Management
 
-[#sctp]
-=== SCTP
+Use the `PerformanceProfile` CR to configure clusters with high power mode, low power mode, or mixed mode depending on workload latency requirements. Per-pod power management via C-states is available for Guaranteed QoS pods with dedicated pinned CPUs, allowing fine-grained latency control per workload.
 
-Enable SCTP kernel module which is required by RAN applications but disabled by default in RHCOS.
+Power configuration relies on appropriate BIOS configuration (C-states and P-states enabled). Configuration varies between hardware vendors.
 
-{cnf-features-source-crs}/extra-manifest/03-sctp-machine-config-master.yaml[Manifest]
+[#schedulable-cp]
+=== Workloads on Schedulable Control Planes
 
-[#hide-container-mount]
-=== Container Mount Hiding
+Telco Core supports an optional schedulable control plane variant that allows user workloads to run on bare-metal master nodes to optimize resource utilization. This feature is only applicable to clusters with bare-metal control plane nodes.
 
-In order to reduce system mount scanning overhead, creates a mount namespaces for container mounts visible to kubelet/CRI-O.
+Enabling schedulable control planes can be configured either at install time or as a Day 2 operation after the initial cluster installation.
 
-{cnf-features-source-crs}/extra-manifest/01-container-mount-ns-and-kubelet-conf-master.yaml[Manifest]
+TIP: Workloads running on control plane nodes must be tested and verified to ensure they do not interfere with core cluster functions. Any workload that reconfigures kernel arguments or system-wide sysctls is not permitted on control plane nodes.
 
-// This is no longer required, https://issues.redhat.com/browse/CNF-9381
-//[#recovery-optimization]
-//=== Recovery Optimization
-//
-//Systemd service which will assign additional CPUs to systemd services during reboot recovery.
-//
-//{cnf-features-source-crs}/extra-manifest/04-accelerated-container-startup-master.yaml[Manifest]
+[#node-configuration]
+=== Node Configuration
 
-[#monitoring-footprint]
-=== Monitoring Operator Config
+Node configuration for Telco Core clusters is applied at install time through extra-manifests. These manifests configure kernel modules, mount namespaces, and crash reporting required by telco workloads.
 
-Reduce footprint of the monitoring stack by:
+The following extra-manifests are applied during installation:
 
-* Reducing the Prometheus retention period, metrics are already being aggregated at the RHACM hub.
-* Disable local Grafana and Alertmanager.
+* {core-extra-manifests}/control-plane-load-kernel-modules.yaml[control-plane-load-kernel-modules.yaml] — loads additional kernel modules (nfnetlink_log, nf_tables, nft_nat, ip_gre, sctp, and others) on control plane nodes.
+* {core-extra-manifests}/worker-load-kernel-modules.yaml[worker-load-kernel-modules.yaml] — loads the same set of additional kernel modules on worker nodes.
+* {core-extra-manifests}/sctp_module_mc.yaml[sctp_module_mc.yaml] — optional manifest to load the SCTP kernel module on worker nodes.
+* {core-extra-manifests}/mount_namespace_config_master.yaml[mount_namespace_config_master.yaml] — creates a container mount namespace on control plane nodes to reduce system mount scanning overhead (visible to kubelet/CRI-O).
+* {core-extra-manifests}/mount_namespace_config_worker.yaml[mount_namespace_config_worker.yaml] — same as above for worker nodes.
+* {core-extra-manifests}/kdump-master.yaml[kdump-master.yaml] — configures kdump crash reporting on master nodes.
+* {core-extra-manifests}/kdump-worker.yaml[kdump-worker.yaml] — configures kdump crash reporting on worker nodes.
 
-{cnf-features-source-crs}/ReduceMonitoringFootprint.yaml[Manifest]
+The following optional custom-manifests define additional `MachineConfigPool` worker roles for MCP-based node grouping, which is **critical for minimizing upgrade windows**:
 
-[#ocp-console]
-=== Console Operator
+* {core-custom-manifests}/mcp-worker-1.yaml[mcp-worker-1.yaml]
+* {core-custom-manifests}/mcp-worker-2.yaml[mcp-worker-2.yaml]
+* {core-custom-manifests}/mcp-worker-3.yaml[mcp-worker-3.yaml]
+* More MachineConfigPools can be created depending on your cluster topology.
 
-As part of the composable OpenShift Settings the Console Operator can be enabled-disabled. The `ClusterInstance` CR allows to define these settings via the `installConfigOverrides`.
+[#service-mesh]
+=== Service Mesh
 
-Since the DUs are being centrally managed from a RHACM hub, the local console will be disabled to reduce resource consumption.
+Telco Core cloud-native functions (CNFs) typically require a Service Mesh implementation. The specific Service Mesh features, performance requirements, and choice of implementation are dependent on the application and are outside the scope of the reference design. The implementation must account for the impact on cluster resource usage and the additional latency introduced in pod networking.
 
-[#networking-diags]
-=== Networking Operator
+[#cno]
+=== Cluster Network Operator
 
-Disable networking diagnostics for SNO as it is not applicable.
+The Cluster Network Operator (CNO) deploys and manages cluster network components including the default OVN-Kubernetes network plugin. It enables multiple secondary networks for traffic separation (MACVLAN, additional CNI configurations) and configures OVN-K with the `routingViaHost` option so that pod egress traffic uses the kernel routing table and applied static routes.
 
-{cnf-features-source-crs}/DisableSnoNetworkDiag.yaml[Manifest]
+The Whereabouts CNI plugin provides dynamic IPv4 and IPv6 addressing for additional pod network interfaces without requiring a DHCP server.
 
-[#operatorhub]
-=== OperatorHub
+{core-source-crs}/required/networking/Network.yaml[Network CR Manifest]
 
-As part of the composable OpenShift Settings the OperatorHub can be enabled-disabled. A single catalog source is recommended that contains only the operators required for a RAN DU deployment.
+{core-source-crs}/required/networking/networkAttachmentDefinition.yaml[NetworkAttachmentDefinition Manifest]
 
-{cnf-features-source-crs}/DefaultCatsrc.yaml[Manifest 2]
+[#metallb]
+=== Load Balancer (MetalLB)
 
-[#ptp-operator]
-=== PTP Operator
+MetalLB is the load-balancer implementation for Telco Core bare-metal clusters. It uses BGP to advertise service IP addresses externally and enables Kubernetes services to get external IPs added to the host network. Traffic separation across VLANs is achieved by combining `BGPAdvertisement`, `BGPPeer`, and `NodeNetworkConfigurationPolicy` CRs.
 
-Configuration of the Precision Time Protocol. The DU can run in the following modes: 
+{core-source-crs}/required/networking/metallb/metallb.yaml[MetalLB CR Manifest]
 
-* Ordinary clock sync to a GM or boundary clock.
-* In addition to the above optionally provide a boundary clock for RU. 
+{core-source-crs}/required/networking/metallb/addr-pool.yaml[IPAddressPool Manifest]
 
-This also includes an optional event notification service that applications can subscribe to for ptp events.
+{core-source-crs}/required/networking/metallb/bgp-peer.yaml[BGPPeer Manifest]
 
-{cnf-features-source-crs}/PtpOperatorConfig-SetSelector.yaml[Operator Config Manifest]
+{core-source-crs}/required/networking/metallb/bgp-advr.yaml[BGPAdvertisement Manifest]
 
-{cnf-features-source-crs}/PtpConfigSlave.yaml[Ordinary Clock Manifest]
+{core-source-crs}/required/networking/metallb/bfd-profile.yaml[BFDProfile Manifest]
 
-{cnf-features-source-crs}/PtpConfigMaster.yaml[Boundary Clock Manifest]
-
-{cnf-features-source-crs}/PtpOperatorConfigForEvent.yaml[Event Notification Manifest]
-
-[#sr-iov]
+[#sr-iov-core]
 === SR-IOV
 
-Provision and configure the SR-IOV CNI and device plugin. Both netdevice (kernel VFs) and vfio (DPDK) are supported. 
+SR-IOV enables physical functions (PFs) to be divided into multiple virtual functions (VFs) assigned to pods for high-throughput networking. Both `netdevice` (kernel VFs) and `vfio` (DPDK) modes are supported. SR-IOV is used for signaling workloads (SCTP, REST, gRPC) and user-plane DPDK networking.
 
-This will be customer specific.
+The SR-IOV Network Operator automatically enables IOMMU on the kernel command line when configured.
 
-{cnf-features-source-crs}/SriovOperatorConfig-SetSelector.yaml[Operator Config Manifest]
+{core-source-crs}/required/networking/sriov/SriovOperatorConfig.yaml[SriovOperatorConfig Manifest]
 
-{cnf-features-source-crs}/SriovNetworkNodePolicy-SetSelector.yaml[SriovNetworkPolicy Manifest]
+{core-source-crs}/required/networking/sriov/sriovNetworkNodePolicy.yaml[SriovNetworkNodePolicy Manifest]
 
-{cnf-features-source-crs}/SriovNetwork.yaml[SriovNetwork Manifest]
+{core-source-crs}/required/networking/sriov/sriovNetwork.yaml[SriovNetwork Manifest]
 
-It also enables the required SR-IOV kernel arguments `intel_ionmu` and `iommu=pt` at installation time avoiding unnecessary reboots when installing the operator:
+[#nmstate]
+=== NMState Operator
 
-{cnf-features-source-crs}/extra-manifest/07-sriov-related-kernel-args-master.yaml[SR-IOV kernel manifest]
+The Kubernetes NMState Operator provides a Kubernetes API for performing state-driven network configuration across cluster nodes. It manages VLANs, bonding (LACP), static routes, MTU settings, and host interface configuration. It is also used to configure SR-IOV VF interfaces (VLANs, MTU) when VFs are used for host networking.
 
-{cnf-features-source-crs}/extra-manifest/07-sriov-related-kernel-args-worker.yaml[SR-IOV kernel manifest]
+{core-source-crs}/required/networking/NMState.yaml[NMState CR Manifest]
 
-[#nto]
-=== Node Tuning Operator
-
-Performance Tuning interface including:
-
-* Enables RT kernel.
-* Enables kubelet feature (cpu manager, topology manager, memory manager).
-* Configures huge pages.
-* Configures reserved and isolated cpusets.
-* Additional kernel args.
-
-{cnf-features-source-crs}/PerformanceProfile-SetSelector.yaml[Manifest]
-
-[#local-storage]
-=== Local Storage
-
-Enables creation of Persistent Volumes which can be consumed as PVCs by applications. This will be customer specific.
-
-{cnf-features-source-crs}/StorageClass.yaml[StorageClass Manifest]
-
-{cnf-features-source-crs}/StorageLV.yaml[Storage Local Volume Manifest]
-
-{cnf-features-source-crs}/StorageLVMCluster.yaml[Storage Local Volume Manifest Dynamic Provisioning]
-
-[#logs]
+[#logging-core]
 === Log Collector and Forwarder
 
-Enables collection and shipping of logs off the edge node for remote analysis.
+The Cluster Logging Operator enables collection and shipping of audit and infrastructure logs off the node to a remote archive using Kafka. Application logs are not included in the reference configuration.
 
-{cnf-features-source-crs}/ClusterLogForwarder.yaml[Manifest]
+NOTE: Logging is optional in the Telco Core RDS. Including application logs requires evaluating the logging rate and allocating sufficient additional CPU resources to the reserved set.
 
-[#crun]
-=== crun Container Runtime
+{core-source-crs}/optional/logging/ClusterLogForwarder.yaml[ClusterLogForwarder Manifest]
 
-For optimal cluster performance, it enables `crun` as container runtime instead of runc for master and worker nodes. This is an optional choice but suggested for telco deployments.
+[#storage-odf]
+=== Storage — OpenShift Data Foundation
 
-{cnf-features-source-crs}/optional-extra-manifest/enable-crun-master.yaml[Master Manifest]
+Telco Core applications require highly available persistent storage. OpenShift Data Foundation (ODF) is reommended to be deployed in *external mode*, where ODF connects to a dedicated external Red Hat Ceph Storage cluster. This approach allows the storage cluster to be shared across multiple OCP clusters in the same region and enables independent lifecycle management of storage and OCP infrastructure.
 
-{cnf-features-source-crs}/optional-extra-manifest/enable-crun-worker.yaml[Worker Manifest]
+NOTE: Storage network traffic should be isolated from other cluster networks using VLAN isolation to reduce security risk.
+
+{core-source-crs}/required/storage/odf-external/odfNS.yaml[ODF Namespace Manifest]
+
+{core-source-crs}/required/storage/odf-external/odfOperGroup.yaml[ODF OperatorGroup Manifest]
+
+{core-source-crs}/required/storage/odf-external/odfSubscription.yaml[ODF Subscription Manifest]
+
+{core-source-crs}/required/storage/odf-external/01-rook-ceph-external-cluster-details.secret.yaml[Ceph External Cluster Details Secret]
+
+{core-source-crs}/required/storage/odf-external/02-ocs-external-storagecluster.yaml[OCS StorageCluster Manifest]
+
+[#monitoring-core]
+=== Monitoring
+
+The Cluster Monitoring Operator (CMO) provides metrics, dashboards, and alerting for platform components and user projects. For Telco Core the reference configuration reduces the Prometheus retention period from the default (primary metrics storage is external to the cluster) and extends Prometheus to forward alerts to the RHACM hub for aggregation.
+
+NOTE: The monitoring configuration is optional in the Telco Core RDS. The CMO is included by default in OpenShift Container Platform; only the custom tuning ConfigMap is optional.
+
+{core-source-crs}/optional/other/monitoring-config-cm.yaml[ClusterMonitoring ConfigMap Manifest]
+
+[#numa-scheduling]
+=== NUMA-Aware Scheduling
+
+The NUMA Resources Operator (NROP) enables topology-aware scheduling so that pods requiring exclusive or dedicated CPUs are placed on nodes where the required CPUs are available within a single NUMA node. This is required for clusters with multi-NUMA node hardware.
+
+{core-source-crs}/required/scheduling/nrop.yaml[NUMAResourcesOperator Manifest]
+
+{core-source-crs}/required/scheduling/sched.yaml[NUMAResourcesScheduler Manifest]
+
+[#disconnected-core]
+=== Disconnected Environment
+
+Telco Core clusters are installed in networks without direct internet access. All container images (OCP, Day 2 OLM Operators, application workloads) must be available in a disconnected registry. A unique name is required for all custom `CatalogSource` resources.
+
+{core-source-crs}/required/other/catalog-source.yaml[CatalogSource Manifest]
+
+{core-source-crs}/required/other/operator-hub.yaml[OperatorHub Manifest]
+
+{core-source-crs}/required/other/idms.yaml[ImageDigestMirrorSet Manifest]
+
+[#security-core]
+=== Security
+
+Telco Core clusters require hardening against multiple attack vectors. Key security configurations include:
+
+* *Rootless DPDK pods*: conformant DPDK pods can run without root privileges using a tap device. Requires the `container_use_devices` SELinux boolean to be enabled on the host.
+* *Seccomp*: all pods should run with the `RuntimeDefault` (or stronger) seccomp profile.
+* *SecurityContextConstraints (SCC)*: all workload pods should run with `restricted-v2` or `restricted` SCC.
+* *Storage network isolation*: the storage network must not be reachable or routable from other cluster networks.
+* *Secure boot*: the recommended boot configuration to ensure only signed kernel modules are loaded.
 
 [#policies-templating]
 == Policies Templating
 
-Policies templating is a bit different, we have a set of base configuration CRs, known as source-crs, that we can use. This set of CRs can be found {cnf-features-source-crs}[here].
+Policies templating is a bit different, we have a set of base configuration CRs, known as source-crs, that we can use. This set of CRs can be found {core-source-crs}[here].
 
-If you access this link you will see lots of files, like for example:
+If you access this link you will see lots of files divided into required and optional sections. 
 
-* AcceleratorNS.yaml
-* AmqInstance.yaml
-* etc.
-
-These CRs are referenced (by filename) from the PolicyGenerator CRs in Git. The POlicyGenerator CRs act as a manifest of which configuration CRs should be included and how they should be combined into Policy CRs. In addition, the PolicyGenerator can contain an "overlay" (or patch) that is applied to the CR before it is wrapped into the Policy.
+These CRs are referenced (by filename) from the PolicyGenerator CRs in Git. The PolicyGenerator CRs act as a manifest of which configuration CRs should be included and how they should be combined into Policy CRs. In addition, the PolicyGenerator can contain an "overlay" (or patch) that is applied to the CR before it is wrapped into the Policy.
 
 The way this works is a follows. We will have one or more PolicyGenerators where we will reference these base configuration CRs. We can see an example {example-groupdu-policygen-link}[here].
 
@@ -267,8 +288,8 @@ policies:
   policyAnnotations:
     ran.openshift.io/ztp-deploy-wave: "10"
   manifests:
-    - path: source-crs/reference-crs/SriovOperatorConfig-SetSelector.yaml
-    - path: source-crs/reference-crs/PerformanceProfile-SetSelector.yaml
+    - path: reference-crs/required/networking/sriov/SriovOperatorConfig.yaml
+    - path: reference-crs/required/performance/PerformanceProfile.yaml
       patches:
       spec:
         cpu:
@@ -281,11 +302,11 @@ policies:
               count: 32
 ----
 
-We can see that the PolicyGenerator is targeting two base configuration CRs: `SriovOperatorConfig-SetSelector.yaml` and `PerformanceProfile-SetSelector.yaml`.
+We can see that the PolicyGenerator is targeting two base configuration CRs: `SriovOperatorConfig.yaml` and `PerformanceProfile.yaml`.
 
-The first source CR, `SriovOperatorConfig-SetSelector.yaml`, is not overriding any settings, we can tell this because we don't have any `patches` section below the `path`. That means that the final policy will include the configuration CR without modification ({cnf-features-source-crs}/SriovOperatorConfig-SetSelector.yaml[base SriovOperatorConfig configuration CR]).
+The first source CR, `SriovOperatorConfig.yaml`, is not overriding any settings, we can tell this because we don't have any `patches` section below the `path`. That means that the final policy will include the configuration CR without modification ({core-source-crs}/required/networking/sriov/SriovOperatorConfig.yaml[base SriovOperatorConfig configuration CR]).
 
-The second source CR, `PerformanceProfile-SetSelector.yaml`, is overriding some parameters in the `spec`. That means that the final policy will be configured as a merge of the {cnf-features-source-crs}/PerformanceProfile-SetSelector.yaml[original CR] plus the custom overrides we provided in the PolicyGenerator.
+The second source CR, `PerformanceProfile.yaml`, is overriding some parameters in the `spec`. That means that the final policy will be configured as a merge of the {core-source-crs}/required/performance/PerformanceProfile.yaml[original CR] plus the custom overrides we provided in the PolicyGenerator.
 
 [#custom-policy-templates]
 === Policies Custom Templating
@@ -295,7 +316,7 @@ In the previous section we have seen how we can use pre-defined templates to cra
 [#kustomize-plugins-locally]
 == Running Kustomize Plugins Locally
 
-We have described how Argo CD makes use of the `policygenerator` plugin to generate the required manifests for our 5G RAN deployments. In this section, we are going to cover how to run this plugin locally which can be useful while troubleshooting or getting a preview of what the files will look like when generated via Argo CD.
+We have described how Argo CD makes use of the `policygenerator` plugin to generate the required manifests for our 5G Core deployments. In this section, we are going to cover how to run this plugin locally which can be useful while troubleshooting or getting a preview of what the files will look like when generated via Argo CD.
 
 By running the steps below we will get the plugin installed in our system. Kustomize should be already installed, you can get it from the https://github.com/kubernetes-sigs/kustomize/releases/[releases page].
 
