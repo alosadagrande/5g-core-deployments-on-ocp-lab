@@ -129,7 +129,6 @@
 ** xref:lab-environment-introduction.adoc#openshift-hub-cluster[OpenShift Hub Cluster]
 ** xref:lab-environment-introduction.adoc#webserver[HTTP Server]
 ** xref:lab-environment-introduction.adoc#s3-storage[S3 Storage Server]
-** xref:lab-environment-introduction.adoc#openshift-seed-sno[OpenShift Seed SNO Cluster]
 
 * xref:preparing-ztp-pipeline.adoc[Preparing the ZTP GitOps Pipeline] 
 ** xref:preparing-ztp-pipeline.adoc#introduction-to-clusterinstance[Introduction to the ClusterInstance]

@@ -1,16 +1,16 @@
 = Introduction to the lab environment
 include::_attributes.adoc[]
-:profile: 5g-ran-lab
+:profile: 5g-core-lab
 
 Before jumping into the hands-on sections, let's get familiar with the lab environment we have available and I would recommend taking a second read of the xref:introduction.adoc#what-you-will-achieve[What You Will Achieve] section.
 
 ifeval::["{demo_environment}" != "true"]
-CAUTION: The following lab sections rely on having a lab environment accessible in order to do the hands-on work. If you're a Red Hatter, you can order a lab environment already set up for you on the https://demo.redhat.com[Red Hat Demo Platform]. You just need to order the lab named `5G RAN Deployment on OpenShift`. Notice that it has a cost of ~ $56 to run through the lab. When the lab is launched, by default you will have 12 hours to complete it before it is destroyed. The estimated time to finish the lab might look like 12 hours total (2h provisioning time, 5h lab work, 5h margin). If you need further time, it can be manually extended up to 24h in total. If you still need to deploy a lab environment, follow the guide available xref:lab-environment.adoc[here].
+CAUTION: The following lab sections rely on having a lab environment accessible in order to do the hands-on work. If you're a Red Hatter, you can order a lab environment already set up for you on the https://demo.redhat.com[Red Hat Demo Platform]. You just need to order the lab named `5G Core Deployment on OpenShift`. Notice that it has a cost of ~ $56 to run through the lab. When the lab is launched, by default you will have 12 hours to complete it before it is destroyed. The estimated time to finish the lab might look like 12 hours total (2h provisioning time, 5h lab work, 5h margin). If you need further time, it can be manually extended up to 24h in total. If you still need to deploy a lab environment, follow the guide available xref:lab-environment.adoc[here].
 endif::[]
 
 The following image presents a high-level overview of the lab environment:
 
-image::telco5g-lab.png[Telco 5G Lab environment]
+image::telco-lab.architecture.png[Telco Core Lab environment]
 
 [#git-server]
 == Git Server
@@ -71,12 +71,3 @@ An S3 storage server is running on the infrastructure host in order to provide S
 * Password: `admin1234`
 
 Access the management console with these credentials to manage S3 buckets for backup and restore operations related to image-based upgrades.
-
-[#openshift-seed-sno]
-== OpenShift Seed SNO Cluster
-
-A Single Node OpenShift cluster is running on the infrastructure host running version {sno-seed-version} of OpenShift Container Platform. Its main purpose is to act as a dedicated single-node OpenShift cluster that you use to create a seed image and is deployed with the target OpenShift Container Platform version. It aligns with the {seed-guidelines}[seed cluster guidelines] and includes the {seed-prereq-software}[software prerequisites] for an image-based installation and deployment and the {seed-prereq-config}[RAN DU profile for a seed image].
-
-Credentials for the seed SNO cluster:
-
-* Admin kubeconfig: It can be found either in the following path of the infrastructure host: {seed-cluster-kubeconfig} or it can be downloaded from the RHACM Web Console.
