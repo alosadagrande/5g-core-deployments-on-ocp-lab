@@ -35,13 +35,123 @@ CAUTION: In a production environment, you should not add sensitive information i
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 -----
-cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/pre-reqs/sno-abi/bmc-credentials.yaml
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/pre-reqs/mno-cluster/bmc-credentials.yaml
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: sno-abi-bmc-credentials
-  namespace: sno-abi
+  name: mno-cluster-master-00-bmc-credentials
+  namespace: mno
+data:
+  username: "YWRtaW4="
+  password: "YWRtaW4="
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mno-cluster-master-01-bmc-credentials
+  namespace: mno
+data:
+  username: "YWRtaW4="
+  password: "YWRtaW4="
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mno-cluster-master-02-bmc-credentials
+  namespace: mno
+data:
+  username: "YWRtaW4="
+  password: "YWRtaW4="
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mno-cluster-worker-00-bmc-credentials
+  namespace: mno
+data:
+  username: "YWRtaW4="
+  password: "YWRtaW4="
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mno-cluster-worker-01-bmc-credentials
+  namespace: mno
+data:
+  username: "YWRtaW4="
+  password: "YWRtaW4="
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mno-cluster-worker-02-bmc-credentials
+  namespace: mno
+data:
+  username: "YWRtaW4="
+  password: "YWRtaW4="
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mno-cluster-worker-10-bmc-credentials
+  namespace: mno
+data:
+  username: "YWRtaW4="
+  password: "YWRtaW4="
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mno-cluster-worker-11-bmc-credentials
+  namespace: mno
+data:
+  username: "YWRtaW4="
+  password: "YWRtaW4="
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mno-cluster-worker-12-bmc-credentials
+  namespace: mno
+data:
+  username: "YWRtaW4="
+  password: "YWRtaW4="
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mno-cluster-worker-20-bmc-credentials
+  namespace: mno
+data:
+  username: "YWRtaW4="
+  password: "YWRtaW4="
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mno-cluster-worker-21-bmc-credentials
+  namespace: mno
+data:
+  username: "YWRtaW4="
+  password: "YWRtaW4="
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mno-cluster-worker-22-bmc-credentials
+  namespace: mno
 data:
   username: "YWRtaW4="
   password: "YWRtaW4="
@@ -54,13 +164,13 @@ EOF
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 -----
-cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/pre-reqs/sno-abi/pull-secret.yaml
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/pre-reqs/mno-cluster/pull-secret.yaml
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: disconnected-registry-pull-secret
-  namespace: sno-abi
+  namespace: mno
 stringData:
   .dockerconfigjson: '{"auths":{"infra.5g-deployment.lab:8443":{"auth":"YWRtaW46cjNkaDR0MSE="}}}'
 type: kubernetes.io/dockerconfigjson
@@ -72,12 +182,12 @@ EOF
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 -----
-cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/pre-reqs/sno-abi/ns.yaml
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/pre-reqs/mno-cluster/ns.yaml
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: sno-abi
+  name: mno
 EOF
 -----
 
@@ -86,7 +196,7 @@ EOF
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 -----
-cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/pre-reqs/sno-abi/kustomization.yaml
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/pre-reqs/mno-cluster/kustomization.yaml
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -107,7 +217,7 @@ cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/pre-reqs/kustomizati
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - sno-abi/
+  - mno-cluster/
 EOF
 -----
 
@@ -121,125 +231,637 @@ Copy the command below and refer to the comments in the code for explanations.
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 -----
-cat << 'EOF' > ~/5g-deployment-lab/ztp-repository/site-configs/hub-1/ocp-sno-abi.yaml
+cat << 'EOF' > ~/5g-deployment-lab/ztp-repository/site-configs/hub-1/ocp-core-cluster.yaml
 ---
 apiVersion: siteconfig.open-cluster-management.io/v1alpha1
 kind: ClusterInstance
 metadata:
-  name: "ocp-sno-abi"
-  namespace: "sno-abi"
+  name: "ocp-mno-cluster"
+  namespace: "mno"
 spec:
-  additionalNTPSources:
-    - "clock.corp.redhat.com"
   baseDomain: "5g-deployment.lab"
-  clusterImageSetNameRef: "active-ocp-version"
-  clusterName: "sno-abi"
-  clusterNetwork:
-    - cidr: "10.128.0.0/14"
-      hostPrefix: 23
-  cpuPartitioningMode: AllNodes
+  pullSecretRef:
+    name: "disconnected-registry-pull-secret"
+  clusterImageSetNameRef: "ocp-v4.18.33-disconnected"
+  sshPublicKey: "{ssh-pub-key}"
+  clusterName: "mno"
+  networkType: "OVNKubernetes"
+  clusterType: HighlyAvailable
+  holdInstallation: false
+  extraManifestsRefs:
+    - name: {core-rds-version-manifests}
+    - name: {core-rds-version-custom-manifests}
+  ignitionConfigOverride: '{"ignition":{"version":"3.2.0"},"storage":{"files":[{"path":"/etc/containers/policy.json","mode":420,"overwrite":true,"contents":{"source":"data:text/plain;charset=utf-8;base64,ewogICAgImRlZmF1bHQiOiBbCiAgICAgICAgewogICAgICAgICAgICAidHlwZSI6ICJpbnNlY3VyZUFjY2VwdEFueXRoaW5nIgogICAgICAgIH0KICAgIF0sCiAgICAidHJhbnNwb3J0cyI6CiAgICAgICAgewogICAgICAgICAgICAiZG9ja2VyLWRhZW1vbiI6CiAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAgICAgIiI6IFt7InR5cGUiOiJpbnNlY3VyZUFjY2VwdEFueXRoaW5nIn1dCiAgICAgICAgICAgICAgICB9CiAgICAgICAgfQp9"}}]}}'
   extraLabels:
     ManagedCluster:
       common: "{policygen-common-label}"
       logicalGroup: "active"
-      group-du-sno: ""
-      du-site: "sno-abi"
-      du-zone: "europe"
+      group-core: ""
+      core-site: "mno"
+      core-zone: "europe"
       hardware-type: "hw-type-platform-1"
-  holdInstallation: false
-  extraManifestsRefs:
-    - name: {ran-rds-version-manifests}
-  installConfigOverrides: |
-    {
-      "capabilities": {
-        "baselineCapabilitySet": "None",
-        "additionalEnabledCapabilities": [
-          "NodeTuning",
-          "OperatorLifecycleManager",
-          "Ingress"
-        ]
-      }
-    }
-  machineNetwork:
-    - cidr: "192.168.125.0/24"
-  networkType: "OVNKubernetes"
-  pullSecretRef:
-    name: "disconnected-registry-pull-secret"
+  clusterNetwork:
+    - cidr: "10.128.0.0/14"
+      hostPrefix: 23
+    - cidr: fd01::/48
+      hostPrefix: 64
+  apiVIPs:
+    - 192.168.125.29
+    - 2620:52:0:1305::29
+  ingressVIPs:
+    - 192.168.125.28
+    - 2620:52:0:1305::28
   serviceNetwork:
     - cidr: "172.30.0.0/16"
-  sshPublicKey: "{ssh-pub-key}"
-  # workaround for (https://issues.redhat.com/browse/OCPBUGS-55106)
-  ignitionConfigOverride: '{"ignition":{"version":"3.2.0"},"storage":{"files":[{"path":"/etc/containers/policy.json","mode":420,"overwrite":true,"contents":{"source":"data:text/plain;charset=utf-8;base64,ewogICAgImRlZmF1bHQiOiBbCiAgICAgICAgewogICAgICAgICAgICAidHlwZSI6ICJpbnNlY3VyZUFjY2VwdEFueXRoaW5nIgogICAgICAgIH0KICAgIF0sCiAgICAidHJhbnNwb3J0cyI6CiAgICAgICAgewogICAgICAgICAgICAiZG9ja2VyLWRhZW1vbiI6CiAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAgICAgIiI6IFt7InR5cGUiOiJpbnNlY3VyZUFjY2VwdEFueXRoaW5nIn1dCiAgICAgICAgICAgICAgICB9CiAgICAgICAgfQp9"}}]}}'
+    - cidr: fd02::/112
+  machineNetwork:
+    - cidr: "192.168.125.0/24"
+    - cidr: 2620:52:0:1305::/64
+  additionalNTPSources:
+    - "clock.corp.redhat.com"
   templateRefs:
     - name: ai-cluster-templates-v1
       namespace: open-cluster-management
   nodes:
-    - automatedCleaningMode: "disabled"
-      bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/sno-abi"
+    - hostName: "control-plane-0"
+      role: "master"
+      bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/ocp-mno-master-00"
       bmcCredentialsName:
-        name: "sno-abi-bmc-credentials"
-      bootMACAddress: "AA:AA:AA:AA:03:01"
+        name: "mno-cluster-master-00-bmc-credentials"
+      bootMACAddress: "aa:aa:aa:aa:02:01"
       bootMode: "UEFI"
-      hostName: "ocp-sno-abi.sno-abi.5g-deployment.lab"
-      ignitionConfigOverride: |
-        {
-          "ignition": {
-            "version": "3.2.0"
-          },
-          "storage": {
-            "disks": [
-              {
-                "device": "/dev/vda",
-                "partitions": [
-                  {
-                    "label": "var-lib-containers",
-                    "sizeMiB": 0,
-                    "startMiB": 60000
-                  }
-                ],
-                "wipeTable": false
-              }
-            ],
-            "filesystems": [
-              {
-                "device": "/dev/disk/by-partlabel/var-lib-containers",
-                "format": "xfs",
-                "mountOptions": [
-                  "defaults",
-                  "prjquota"
-                ],
-                "path": "/var/lib/containers",
-                "wipeFilesystem": true
-              }
-            ]
-          },
-          "systemd": {
-            "units": [
-              {
-                "contents": "# Generated by Butane\n[Unit]\nRequires=systemd-fsck@dev-disk-by\\x2dpartlabel-var\\x2dlib\\x2dcontainers.service\nAfter=systemd-fsck@dev-disk-by\\x2dpartlabel-var\\x2dlib\\x2dcontainers.service\n\n[Mount]\nWhere=/var/lib/containers\nWhat=/dev/disk/by-partlabel/var-lib-containers\nType=xfs\nOptions=defaults,prjquota\n\n[Install]\nRequiredBy=local-fs.target",
-                "enabled": true,
-                "name": "var-lib-containers.mount"
-              }
-            ]
-          }
-        }
+      rootDeviceHints:
+        deviceName: "/dev/vda"
       nodeNetwork:
         interfaces:
-          - name: "enp3s0"
-            macAddress: "AA:AA:AA:AA:03:01"
+        - macAddress: "aa:aa:aa:aa:02:01"
+          name: "enp3s0"
         config:
           interfaces:
             - name: enp3s0
               type: ethernet
               state: up
               ipv4:
+                address:
+                - ip: 192.168.125.30
+                  prefix-length: 24
                 enabled: true
-                dhcp: true
               ipv6:
-                enabled: false
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::30
+                    prefix-length: 64
+          dns-resolver:
+            config:
+              server:
+              - 192.168.125.1
+              - 2620:52:0:1305::1
+          routes:
+            config:
+            - destination: 0.0.0.0/0
+              next-hop-interface: enp3s0
+              next-hop-address: 192.168.125.1
+              table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+    - hostName: "control-plane-1"
       role: "master"
+      bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/ocp-mno-master-01"
+      bmcCredentialsName:
+        name: "mno-cluster-master-01-bmc-credentials"
+      bootMACAddress: "aa:aa:aa:aa:02:02"
+      bootMode: "UEFI"
       rootDeviceHints:
         deviceName: "/dev/vda"
+      nodeNetwork:
+        interfaces:
+        - macAddress: "aa:aa:aa:aa:02:02"
+          name: "enp3s0"
+        config:
+          interfaces:
+            - name: enp3s0
+              type: ethernet
+              state: up
+              ipv4:
+                address:
+                - ip: 192.168.125.31
+                  prefix-length: 24
+                enabled: true
+              ipv6:
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::31
+                    prefix-length: 64
+          dns-resolver:
+            config:
+              server:
+              - 192.168.125.1
+              - 2620:52:0:1305::1
+          routes:
+            config:
+            - destination: 0.0.0.0/0
+              next-hop-interface: enp3s0
+              next-hop-address: 192.168.125.1
+              table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+    - hostName: "control-plane-2"
+      role: "master"
+      bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/ocp-mno-master-02"
+      bmcCredentialsName:
+        name: "mno-cluster-master-02-bmc-credentials"
+      bootMACAddress: "aa:aa:aa:aa:02:03"
+      bootMode: "UEFI"
+      rootDeviceHints:
+        deviceName: "/dev/vda"
+      nodeNetwork:
+        interfaces:
+        - macAddress: "aa:aa:aa:aa:02:03"
+          name: "enp3s0"
+        config:
+          interfaces:
+            - name: enp3s0
+              type: ethernet
+              state: up
+              ipv4:
+                address:
+                - ip: 192.168.125.32
+                  prefix-length: 24
+                enabled: true
+              ipv6:
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::32
+                    prefix-length: 64
+          dns-resolver:
+            config:
+              server:
+              - 192.168.125.1
+              - 2620:52:0:1305::1
+          routes:
+            config:
+            - destination: 0.0.0.0/0
+              next-hop-interface: enp3s0
+              next-hop-address: 192.168.125.1
+              table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+    - hostName: "worker-00"
+      role: "worker"
+      nodeLabels:
+        node-role.kubernetes.io/worker-0: ""
+      bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/ocp-mno-worker-00"
+      bmcCredentialsName:
+        name: "mno-cluster-worker-00-bmc-credentials"
+      bootMACAddress: "aa:aa:aa:aa:02:04"
+      bootMode: "UEFI"
+      rootDeviceHints:
+        deviceName: "/dev/vda"
+      nodeNetwork:
+        interfaces:
+        - macAddress: "aa:aa:aa:aa:02:04"
+          name: "enp3s0"
+        config:
+          interfaces:
+            - name: enp3s0
+              type: ethernet
+              state: up
+              ipv4:
+                address:
+                - ip: 192.168.125.33
+                  prefix-length: 24
+                enabled: true
+              ipv6:
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::33
+                    prefix-length: 64
+          dns-resolver:
+            config:
+              server:
+              - 192.168.125.1
+              - 2620:52:0:1305::1
+          routes:
+            config:
+            - destination: 0.0.0.0/0
+              next-hop-interface: enp3s0
+              next-hop-address: 192.168.125.1
+              table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+    - hostName: "worker-01"
+      role: "worker"
+      nodeLabels:
+        node-role.kubernetes.io/worker-0: ""
+      bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/ocp-mno-worker-01"
+      bmcCredentialsName:
+        name: "mno-cluster-worker-01-bmc-credentials"
+      bootMACAddress: "aa:aa:aa:aa:02:05"
+      bootMode: "UEFI"
+      rootDeviceHints:
+        deviceName: "/dev/vda"
+      nodeNetwork:
+        interfaces:
+        - macAddress: "aa:aa:aa:aa:02:05"
+          name: "enp3s0"
+        config:
+          interfaces:
+            - name: enp3s0
+              type: ethernet
+              state: up
+              ipv4:
+                address:
+                - ip: 192.168.125.34
+                  prefix-length: 24
+                enabled: true
+              ipv6:
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::34
+                    prefix-length: 64
+          dns-resolver:
+            config:
+              server:
+              - 192.168.125.1
+              - 2620:52:0:1305::1
+          routes:
+            config:
+            - destination: 0.0.0.0/0
+              next-hop-interface: enp3s0
+              next-hop-address: 192.168.125.1
+              table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+    - hostName: "worker-02"
+      role: "worker"
+      nodeLabels:
+        node-role.kubernetes.io/worker-0: ""
+      bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/ocp-mno-worker-02"
+      bmcCredentialsName:
+        name: "mno-cluster-worker-02-bmc-credentials"
+      bootMACAddress: "aa:aa:aa:aa:02:06"
+      bootMode: "UEFI"
+      rootDeviceHints:
+        deviceName: "/dev/vda"
+      nodeNetwork:
+        interfaces:
+        - macAddress: "aa:aa:aa:aa:02:06"
+          name: "enp3s0"
+        config:
+          interfaces:
+            - name: enp3s0
+              type: ethernet
+              state: up
+              ipv4:
+                address:
+                - ip: 192.168.125.35
+                  prefix-length: 24
+                enabled: true
+              ipv6:
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::35
+                    prefix-length: 64
+          dns-resolver:
+            config:
+              server:
+              - 192.168.125.1
+              - 2620:52:0:1305::1
+          routes:
+            config:
+            - destination: 0.0.0.0/0
+              next-hop-interface: enp3s0
+              next-hop-address: 192.168.125.1
+              table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+    - hostName: "worker-10"
+      role: "worker"
+      nodeLabels:
+        node-role.kubernetes.io/worker-1: ""
+      bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/ocp-mno-worker-10"
+      bmcCredentialsName:
+        name: "mno-cluster-worker-10-bmc-credentials"
+      bootMACAddress: "aa:aa:aa:aa:02:07"
+      bootMode: "UEFI"
+      rootDeviceHints:
+        deviceName: "/dev/vda"
+      nodeNetwork:
+        interfaces:
+        - macAddress: "aa:aa:aa:aa:02:07"
+          name: "enp3s0"
+        config:
+          interfaces:
+            - name: enp3s0
+              type: ethernet
+              state: up
+              ipv4:
+                address:
+                - ip: 192.168.125.36
+                  prefix-length: 24
+                enabled: true
+              ipv6:
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::36
+                    prefix-length: 64
+          dns-resolver:
+            config:
+              server:
+              - 192.168.125.1
+              - 2620:52:0:1305::1
+          routes:
+            config:
+            - destination: 0.0.0.0/0
+              next-hop-interface: enp3s0
+              next-hop-address: 192.168.125.1
+              table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+    - hostName: "worker-11"
+      role: "worker"
+      nodeLabels:
+        node-role.kubernetes.io/worker-1: ""
+      bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/ocp-mno-worker-11"
+      bmcCredentialsName:
+        name: "mno-cluster-worker-11-bmc-credentials"
+      bootMACAddress: "aa:aa:aa:aa:02:08"
+      bootMode: "UEFI"
+      rootDeviceHints:
+        deviceName: "/dev/vda"
+      nodeNetwork:
+        interfaces:
+        - macAddress: "aa:aa:aa:aa:02:08"
+          name: "enp3s0"
+        config:
+          interfaces:
+            - name: enp3s0
+              type: ethernet
+              state: up
+              ipv4:
+                address:
+                - ip: 192.168.125.37
+                  prefix-length: 24
+                enabled: true
+              ipv6:
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::37
+                    prefix-length: 64
+          dns-resolver:
+            config:
+              server:
+              - 192.168.125.1
+              - 2620:52:0:1305::1
+          routes:
+            config:
+            - destination: 0.0.0.0/0
+              next-hop-interface: enp3s0
+              next-hop-address: 192.168.125.1
+              table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+    - hostName: "worker-12"
+      role: "worker"
+      nodeLabels:
+        node-role.kubernetes.io/worker-1: ""
+      bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/ocp-mno-worker-12"
+      bmcCredentialsName:
+        name: "mno-cluster-worker-12-bmc-credentials"
+      bootMACAddress: "aa:aa:aa:aa:02:09"
+      bootMode: "UEFI"
+      rootDeviceHints:
+        deviceName: "/dev/vda"
+      nodeNetwork:
+        interfaces:
+        - macAddress: "aa:aa:aa:aa:02:09"
+          name: "enp3s0"
+        config:
+          interfaces:
+            - name: enp3s0
+              type: ethernet
+              state: up
+              ipv4:
+                address:
+                - ip: 192.168.125.38
+                  prefix-length: 24
+                enabled: true
+              ipv6:
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::38
+                    prefix-length: 64
+          dns-resolver:
+            config:
+              server:
+              - 192.168.125.1
+              - 2620:52:0:1305::1
+          routes:
+            config:
+            - destination: 0.0.0.0/0
+              next-hop-interface: enp3s0
+              next-hop-address: 192.168.125.1
+              table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+    - hostName: "worker-20"
+      role: "worker"
+      nodeLabels:
+        node-role.kubernetes.io/worker-2: ""
+      bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/ocp-mno-worker-20"
+      bmcCredentialsName:
+        name: "mno-cluster-worker-20-bmc-credentials"
+      bootMACAddress: "aa:aa:aa:aa:02:10"
+      bootMode: "UEFI"
+      rootDeviceHints:
+        deviceName: "/dev/vda"
+      nodeNetwork:
+        interfaces:
+        - macAddress: "aa:aa:aa:aa:02:10"
+          name: "enp3s0"
+        config:
+          interfaces:
+            - name: enp3s0
+              type: ethernet
+              state: up
+              ipv4:
+                address:
+                - ip: 192.168.125.39
+                  prefix-length: 24
+                enabled: true
+              ipv6:
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::39
+                    prefix-length: 64
+          dns-resolver:
+            config:
+              server:
+              - 192.168.125.1
+              - 2620:52:0:1305::1
+          routes:
+            config:
+            - destination: 0.0.0.0/0
+              next-hop-interface: enp3s0
+              next-hop-address: 192.168.125.1
+              table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+    - hostName: "worker-21"
+      role: "worker"
+      nodeLabels:
+        node-role.kubernetes.io/worker-2: ""
+      bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/ocp-mno-worker-21"
+      bmcCredentialsName:
+        name: "mno-cluster-worker-21-bmc-credentials"
+      bootMACAddress: "aa:aa:aa:aa:02:11"
+      bootMode: "UEFI"
+      rootDeviceHints:
+        deviceName: "/dev/vda"
+      nodeNetwork:
+        interfaces:
+        - macAddress: "aa:aa:aa:aa:02:11"
+          name: "enp3s0"
+        config:
+          interfaces:
+            - name: enp3s0
+              type: ethernet
+              state: up
+              ipv4:
+                address:
+                - ip: 192.168.125.40
+                  prefix-length: 24
+                enabled: true
+              ipv6:
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::40
+                    prefix-length: 64
+          dns-resolver:
+            config:
+              server:
+              - 192.168.125.1
+              - 2620:52:0:1305::1
+          routes:
+            config:
+            - destination: 0.0.0.0/0
+              next-hop-interface: enp3s0
+              next-hop-address: 192.168.125.1
+              table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
+      templateRefs:
+        - name: ai-node-templates-v1
+          namespace: open-cluster-management
+    - hostName: "worker-22"
+      role: "worker"
+      nodeLabels:
+        node-role.kubernetes.io/worker-2: ""
+      bmcAddress: "redfish-virtualmedia://192.168.125.1:9000/redfish/v1/Systems/local/ocp-mno-worker-22"
+      bmcCredentialsName:
+        name: "mno-cluster-worker-22-bmc-credentials"
+      bootMACAddress: "aa:aa:aa:aa:02:12"
+      bootMode: "UEFI"
+      rootDeviceHints:
+        deviceName: "/dev/vda"
+      nodeNetwork:
+        interfaces:
+        - macAddress: "aa:aa:aa:aa:02:12"
+          name: "enp3s0"
+        config:
+          interfaces:
+            - name: enp3s0
+              type: ethernet
+              state: up
+              ipv4:
+                address:
+                - ip: 192.168.125.41
+                  prefix-length: 24
+                enabled: true
+              ipv6:
+                enabled: true
+                dhcp: false
+                autoconf: false
+                address:
+                  - ip: 2620:52:0:1305::41
+                    prefix-length: 64
+          dns-resolver:
+            config:
+              server:
+              - 192.168.125.1
+              - 2620:52:0:1305::1
+          routes:
+            config:
+            - destination: 0.0.0.0/0
+              next-hop-interface: enp3s0
+              next-hop-address: 192.168.125.1
+              table-id: 254
+            - destination: ::/0
+              next-hop-interface: enp3s0
+              next-hop-address: 2620:52:0:1305::1
       templateRefs:
         - name: ai-node-templates-v1
           namespace: open-cluster-management
@@ -253,12 +875,12 @@ In our site, we defined `clusterImageSetNameRef: "active-ocp-version"` for the r
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 -----
-cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/resources/active-ocp-version.yaml
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/resources/ocp-418-33-imageset.yaml
 ---
 apiVersion: hive.openshift.io/v1
 kind: ClusterImageSet
 metadata:
-  name: active-ocp-version
+  name: ocp-v4.18.33-disconnected
 spec:
   releaseImage: {active-ocp-version-clusterimageset}
 EOF
@@ -272,7 +894,9 @@ Let's add the {rds-config}[reference RAN DU configuration] for the version of OC
 [source,bash,subs="attributes+,+macros"]
 -----
 podman login infra.5g-deployment.lab:8443 -u admin -p r3dh4t1! --tls-verify=false
-podman run --log-driver=none --rm --tls-verify=false {ztp-sitegenerate-disconnected-image} extract /home/ztp/extra-manifest --tar | tar x -C ~/5g-deployment-lab/ztp-repository/site-configs/reference-manifest/{lab-major-version}/
+podman run --log-driver=none --rm --tls-verify=false {ztp-core-reference-418-disconnected-image} | base64 -d | tar x -C ~/5g-deployment-lab/ztp-repository/site-configs/install-manifests/{lab-minor-version}/extra-manifests/ --strip-components=3 telco-core-rds/install/extra-manifests/
+podman run --log-driver=none --rm --tls-verify=false {ztp-core-reference-419-disconnected-image} | base64 -d | tar x -C ~/5g-deployment-lab/ztp-repository/site-configs/install-manifests/{lab-mid-version}/extra-manifests/ --strip-components=3 telco-core-rds/install/extra-manifests/
+podman run --log-driver=none --rm --tls-verify=false {ztp-core-reference-420-disconnected-image} | base64 -d | tar x -C ~/5g-deployment-lab/ztp-repository/site-configs/install-manifests/{lab-major-version}/extra-manifests/ --strip-components=3 telco-core-rds/install/extra-manifests/
 -----
 
 `reference-manifest/{lab-major-version}/` refers to the Git subdirectory that stores the contents of the RAN configuration for a specific version, in this case {lab-major-version}. Different versions of the RAN DU configuration can coexist by extracting them from the appropriate `ztp-site-generate` container version to a different `extra-manifest` folder. Then, the user only needs to include the right `reference-manifest` version folder to the cluster version being installed.
@@ -289,37 +913,71 @@ Now, let's add the **extra** or **custom** RAN configuration to the cluster. It 
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 -----
-cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/hub-1/extra-manifest/enable-crun-master.yaml
+for release in {lab-minor-version} {lab-mid-version} {lab-major-version}
+do
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/install-manifests/${release}/custom-manifests/fast-upgrades-mcps.yaml
 ---
 apiVersion: machineconfiguration.openshift.io/v1
-kind: ContainerRuntimeConfig
+kind: MachineConfigPool
 metadata:
- name: enable-crun-master
+  labels:
+    machineconfiguration.openshift.io/role: worker-0
+  name: worker-0
 spec:
- machineConfigPoolSelector:
-   matchLabels:
-     pools.operator.machineconfiguration.openshift.io/master: ""
- containerRuntimeConfig:
-   defaultRuntime: crun
-EOF
------
-
-[.console-input]
-[source,bash,subs="attributes+,+macros"]
------
-cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/hub-1/extra-manifest/enable-crun-worker.yaml
+  machineConfigSelector:
+    matchExpressions:
+    - key: machineconfiguration.openshift.io/role
+      operator: In
+      values:
+      - worker
+      - worker-0
+  maxUnavailable: 100%
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/worker-0: ""
+  paused: false
 ---
 apiVersion: machineconfiguration.openshift.io/v1
-kind: ContainerRuntimeConfig
+kind: MachineConfigPool
 metadata:
- name: enable-crun-worker
+  labels:
+    machineconfiguration.openshift.io/role: worker-1
+  name: worker-1
 spec:
- machineConfigPoolSelector:
-   matchLabels:
-     pools.operator.machineconfiguration.openshift.io/worker: ""
- containerRuntimeConfig:
-   defaultRuntime: crun
+  machineConfigSelector:
+    matchExpressions:
+    - key: machineconfiguration.openshift.io/role
+      operator: In
+      values:
+      - worker
+      - worker-1
+  maxUnavailable: 100%
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/worker-1: ""
+  paused: false
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: worker-2
+  name: worker-2
+spec:
+  machineConfigSelector:
+    matchExpressions:
+    - key: machineconfiguration.openshift.io/role
+      operator: In
+      values:
+      - worker
+      - worker-2
+  maxUnavailable: 100%
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/worker-2: ""
+  paused: false
 EOF
+done
 -----
 
 IMPORTANT: As of version 4.16 the default cgroups configuration is **cgroupsv2**. If there is a need to run cgroupsv1 instead, please add the https://github.com/openshift-kni/cnf-features-deploy/blob/release-4.15/ztp/source-crs/extra-manifest/enable-cgroups-v1.yaml[enable-cgroups-v1.yaml] extra-manifest to the same `extra-manifest` folder where crun is configured.
@@ -337,14 +995,14 @@ cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/hub-1/kustomization.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 generators:
-  - ocp-sno-abi.yaml
+  - ocp-core-cluster.yaml
 EOF
 cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/resources/kustomization.yaml
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - active-ocp-version.yaml
+  - ocp-418-33-imageset.yaml
 EOF
 cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/kustomization.yaml
 ---
@@ -353,32 +1011,23 @@ kind: Kustomization
 resources:
   - pre-reqs/
   - resources/
-  - hub-1/ocp-sno-abi.yaml
-
+  - hub-1/ocp-core-cluster.yaml
 configMapGenerator:
   - files:
-    - reference-manifest/{lab-major-version}/01-container-mount-ns-and-kubelet-conf-master.yaml
-    - reference-manifest/{lab-major-version}/01-container-mount-ns-and-kubelet-conf-worker.yaml
-    - reference-manifest/{lab-major-version}/01-disk-encryption-pcr-rebind-master.yaml
-    - reference-manifest/{lab-major-version}/01-disk-encryption-pcr-rebind-worker.yaml
-    - reference-manifest/{lab-major-version}/03-sctp-machine-config-master.yaml
-    - reference-manifest/{lab-major-version}/03-sctp-machine-config-worker.yaml
-    - reference-manifest/{lab-major-version}/06-kdump-master.yaml
-    - reference-manifest/{lab-major-version}/06-kdump-worker.yaml
-    - reference-manifest/{lab-major-version}/07-sriov-related-kernel-args-master.yaml
-    - reference-manifest/{lab-major-version}/07-sriov-related-kernel-args-worker.yaml
-    - reference-manifest/{lab-major-version}/08-set-rcu-normal-master.yaml
-    - reference-manifest/{lab-major-version}/08-set-rcu-normal-worker.yaml
-    - reference-manifest/{lab-major-version}/09-openshift-marketplace-ns.yaml
-    - reference-manifest/{lab-major-version}/99-crio-disable-wipe-worker.yaml
-    - reference-manifest/{lab-major-version}/99-sync-time-once-master.yaml
-    - reference-manifest/{lab-major-version}/99-crio-disable-wipe-master.yaml
-    - reference-manifest/{lab-major-version}/99-sync-time-once-worker.yaml
-    - hub-1/extra-manifest/enable-crun-master.yaml
-    - hub-1/extra-manifest/enable-crun-worker.yaml
-    name: {ran-rds-version-manifests}
-    namespace: sno-abi
-
+    - install-manifests/{lab-minor-version}/extra-manifests/control-plane-load-kernel-modules.yaml
+    - install-manifests/{lab-minor-version}/extra-manifests/kdump-master.yaml
+    - install-manifests/{lab-minor-version}/extra-manifests/kdump-worker.yaml
+    - install-manifests/{lab-minor-version}/extra-manifests/mc_rootless_pods_selinux.yaml
+    - install-manifests/{lab-minor-version}/extra-manifests/mount_namespace_config_master.yaml
+    - install-manifests/{lab-minor-version}/extra-manifests/mount_namespace_config_worker.yaml
+    - install-manifests/{lab-minor-version}/extra-manifests/sctp_module_mc.yaml
+    - install-manifests/{lab-minor-version}/extra-manifests/worker-load-kernel-modules.yaml
+    name: {core-rds-version-manifests}
+    namespace: mno
+  - files:
+    - install-manifests/{lab-minor-version}/custom-manifests/fast-upgrades-mcps.yaml
+    name: {core-rds-version-custom-manifests}
+    namespace: mno
 generatorOptions:
   disableNameSuffixHash: true
 EOF
