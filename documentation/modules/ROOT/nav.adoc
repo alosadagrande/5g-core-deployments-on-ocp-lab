@@ -116,7 +116,7 @@
 
 * xref:deployment-considerations.adoc[Deployment Considerations]
 ** xref:deployment-considerations.adoc#hardware-configurations[Hardware configurations]
-*** xref:deployment-considerations.adoc#bios-settings[Bios Settings]
+*** xref:deployment-considerations.adoc#bios-settings[BIOS Settings]
 ** xref:deployment-considerations.adoc#networking[Networking]
 ** xref:deployment-considerations.adoc#disconnected-environments[Disconnected Environments]
 *** xref:deployment-considerations.adoc#connected-proxy[Connected through proxy]
