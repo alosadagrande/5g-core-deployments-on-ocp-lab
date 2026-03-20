@@ -1,0 +1,86 @@
+
+apiVersion: mirror.openshift.io/v2alpha1
+kind: ImageSetConfiguration
+mirror:
+  platform:
+    graph: false
+    channels:
+    - name: stable-4.20
+      minVersion: 4.20.8
+      maxVersion: 4.20.8
+    architectures:
+    - amd64
+  operators:
+  - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.20-1769431701
+    packages:
+    #hub
+    - name: openshift-gitops-operator
+      channels:
+      - name: latest
+    - name: lvms-operator
+      channels:
+      - name: stable-4.20
+    - name: advanced-cluster-management
+      channels:
+      - name: release-2.15
+    - name: multicluster-engine
+      channels:
+      - name: stable-2.10
+    - name: topology-aware-lifecycle-manager
+      channels:
+      - name: stable
+    # mno
+    - name: sriov-network-operator
+      channels:
+      - name: stable
+    - name: ptp-operator
+      channels:
+      - name: stable
+    - name: cluster-logging
+      channels:
+      - name: stable-6.4
+    - name: loki-operator
+      channels:
+      - name: stable-6.4
+    - name: metallb-operator
+      channels:
+      - name: stable
+    - name: kubernetes-nmstate-operator
+      channels:
+      - name: stable
+    - name: cephcsi-operator
+      channels:
+      - name: stable-4.20
+    - name: mcg-operator
+      channels:
+      - name: stable-4.20
+    - name: mcg-operator
+      channels:
+      - name: stable-4.20
+    - name: numaresources-operator
+      channels:
+      - name: "4.20"
+    - name: ocs-client-operator
+      channels:
+      - name: stable-4.20
+    - name: ocs-operator
+      channels:
+      - name: stable-4.20
+    - name: odf-csi-addons-operator
+      channels:
+      - name: stable-4.20
+    - name: odf-dependencies
+      channels:
+      - name: stable-4.20
+    - name: odf-operator
+      channels:
+      - name: stable-4.20
+    - name: odf-prometheus-operator
+      channels:
+      - name: stable-4.20
+    - name: recipe
+      channels:
+      - name: stable-4.20
+    - name: rook-ceph-operator
+      channels:
+      - name: stable-4.20
