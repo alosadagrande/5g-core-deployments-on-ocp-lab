@@ -10,7 +10,7 @@ endif::[]
 
 The following image presents a high-level overview of the lab environment:
 
-image::fast-mno-upgrades-cluster-partitioning.png[Telco Core Lab environment]
+image::telco-lab-arch.png[Telco Core Lab environment]
 
 [#git-server]
 == Git Server
