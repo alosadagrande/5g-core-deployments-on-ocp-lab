@@ -107,3 +107,10 @@ External mode is the preferred storage configuration for Telco Core deployments 
 ODF supports separation of storage traffic using secondary CNI networks. Storage network traffic must be isolated on a dedicated VLAN and must not be routable from other cluster networks.
 
 You can read more about OpenShift Data Foundation {odf-docs}[here].
+
+[#cert-manager-operator]
+== Cert-Manager Operator
+
+The cert-manager Operator for Red Hat OpenShift is a cluster-wide service that provides application certificate lifecycle management. The cert-manager Operator for Red Hat OpenShift allows you to integrate with external certificate authorities and provides certificate provisioning, renewal, and retirement.
+
+You can read more about the Cert Manager Operator {cert-manager-docs}[here].   

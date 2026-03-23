@@ -104,4 +104,5 @@ code:experimental:
 :nrop-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/scheduling-numa-aware-workloads
 :odf-docs: https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19/html/planning_your_deployment
 :cno-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/networking/cluster-network-operator
+:cert-manager-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/security_and_compliance/cert-manager-operator-for-red-hat-openshift
 :last-update-date: 2026-03-17

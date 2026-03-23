@@ -43,6 +43,7 @@
 ** xref:telco-related-infra-operators-intro.adoc#lifecycle-operator[Lifecycle Agent Operator]
 ** xref:telco-related-infra-operators-intro.adoc#storage-operator[Storage Operators]
 ** xref:telco-related-infra-operators-intro.adoc#oadp-operator[OpenShift API for Data Protection Operator]
+** xref:telco-related-infra-operators-intro.adoc#cert-manager-operator[Cert-Manager Operator]
 
 * xref:ztp-intro.adoc[Introduction to Zero Touch Provisioning (ZTP)]
 ** xref:ztp-intro.adoc#what-is-ztp[What is ZTP?]
@@ -153,7 +154,6 @@
 ** xref:crafting-cluster-telco-related-infra-operators-configs.adoc#configure-kustomization-for-policies[Configure Kustomization for Policies]
 ** xref:crafting-cluster-telco-related-infra-operators-configs.adoc#deploying-policies-using-gitops-pipeline[Deploying the Telco 5G RAN RDS using the ZTP GitOps Pipeline]
 
-
 * xref:installing-agentbasedinstall-cluster.adoc[Deploying an Agent Based Install Cluster] 
 ** xref:installing-agentbasedinstall-cluster.adoc#introduction[Introduction]
 ** xref:installing-agentbasedinstall-cluster.adoc#baremetal-node-details[Bare Metal Node Details]
@@ -185,13 +185,17 @@
 ** xref:check-deployment-is-finished.adoc#check-sno-deployment-webui[Check SNO Deployment has Finished via the WebUI]
 ** xref:check-deployment-is-finished.adoc#check-sno-deployment-cli[Check SNO Deployment has Finished via the CLI]
 
-* xref:using-talm-to-update-clusters.adoc[Image-based Upgrade for SNO clusters]
-** xref:using-talm-to-update-clusters.adoc#introduction[Introduction to Image-based Upgrades]
-** xref:using-talm-to-update-clusters.adoc#verify-talm[Verifying Hub Software Requirements]
-** xref:using-talm-to-update-clusters.adoc#getting-snos-kubeconfigs[Verifying Managed Clusters Requirements]
-** xref:using-talm-to-update-clusters.adoc#install-lca[Preparing Managed Clusters for Upgrade]
-** xref:using-talm-to-update-clusters.adoc#upgrade-policy-creation[Creating the Image Base Group Upgrade]
-** xref:using-talm-to-update-clusters.adoc#monitoring-ibu[Monitoring the Image Based Group Upgrade ]
+* xref:fast-mno-upgrades-handson.adoc[Fast Upgrading the MNO Cluster]
+** xref:fast-mno-upgrades-handson.adoc#introduction[Introduction]
+** xref:fast-mno-upgrades-handson.adoc#verify-prereqs[Verifying the Starting State]
+** xref:fast-mno-upgrades-handson.adoc#policies-19[Creating the 4.18 to 4.19 Upgrade Policies]
+** xref:fast-mno-upgrades-handson.adoc#policies-20[Creating the 4.19 to 4.20 Upgrade Policies]
+** xref:fast-mno-upgrades-handson.adoc#cgus[Defining the CGU Orchestration Chain]
+** xref:fast-mno-upgrades-handson.adoc#trigger-upgrade[Triggering the Upgrade]
+** xref:fast-mno-upgrades-handson.adoc#monitor-stage1[Monitoring — 4.18 to 4.19 Control Plane]
+** xref:fast-mno-upgrades-handson.adoc#monitor-stage2[Monitoring — 4.19 to 4.20 Control Plane]
+** xref:fast-mno-upgrades-handson.adoc#monitor-stage3[Monitoring — Worker Zone Upgrades]
+** xref:fast-mno-upgrades-handson.adoc#monitor-complete[Upgrade Complete]
 
 * xref:troubleshooting-tips.adoc[Troubleshooting Tips]
 ** xref:troubleshooting-tips.adoc#verification-lab[Verification of the lab status]
