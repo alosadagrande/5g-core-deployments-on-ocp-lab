@@ -1,0 +1,275 @@
+= Fast MNO Upgrades
+include::_attributes.adoc[]
+:profile: 5g-core-lab
+
+[#introduction]
+== Introduction
+
+Performing OpenShift upgrades on large, multi-node (MNO) clusters is a challenging operation. Traditional upgrade approaches apply changes node by node in a serial fashion, meaning a single cluster with dozens of worker nodes can take many hours or even days to complete an upgrade. For environments running critical Telco workloads, this is simply not acceptable.
+
+The *Fast MNO Upgrade* methodology addresses this problem head-on. By combining a carefully designed cluster architecture, cloud-native workload patterns, and end-to-end automation, it achieves upgrades up to *three times faster* than traditional serial approaches, all while maintaining high availability for the applications running on the cluster.
+
+This section explains the concepts and design decisions behind the Fast MNO Upgrade approach. Understanding this theory is essential before performing the hands-on upgrade lab that follows.
+
+The methodology rests on three core pillars:
+
+* *Resilient Cluster Architecture* — partitioning the cluster into failure domains that can be upgraded in parallel.
+* *Cloud-native Workload Design* — ensuring applications tolerate a zone going offline without violating their availability contracts.
+* *Zero-Touch Automation* — orchestrating the full end-to-end procedure using ACM and TALM with no manual intervention.
+
+[#what-is-fast-mno-upgrade]
+== What Is a Fast MNO Upgrade?
+
+A Fast MNO Upgrade is an automated execution of an Extended Update Support (EUS) to EUS upgrade on a multi-node OpenShift cluster. The example used throughout this lab upgrades a cluster from *{lab-minor-version}* to *{lab-major-version}*.
+
+[#control-plane-first]
+=== Control Plane First
+
+The key technique that makes this methodology fast is the *Control Plane First* approach, also known as a *Control Plane Only* upgrade. The upgrade is split into two distinct phases:
+
+. *Control Plane Phase* — The control plane nodes are upgraded sequentially through every required intermediate version ({lab-minor-version} → {lab-mid-version} → {lab-major-version}). During this entire phase, the worker nodes remain on the original version and continue serving the workload without any interruption.
+
+. *Worker Phase* — Once the control plane is fully upgraded to the final target version, all worker nodes are upgraded. Thanks to the architecture described in the following sections, entire groups of worker nodes are rebooted simultaneously rather than one by one.
+
+This approach is safe and fully supported. The https://kubernetes.io/releases/version-skew-policy/[Kubernetes version skew policy] allows worker nodes to be up to two minor versions behind the control plane, which is exactly what makes it possible to pin workers at {lab-minor-version} while the control plane moves ahead to {lab-major-version}.
+
+The immediate result is that each worker node reboots exactly *once* during the entire operation, instead of twice (once for the intermediate version and once for the final version) as would happen in a standard sequential upgrade.
+
+[#eus-upgrade-diagram]
+=== EUS-to-EUS Upgrade Flow
+
+The following diagram shows how the two phases relate to each other. Worker MachineConfigPools (MCPs) are paused during the control plane phase and then unpaused sequentially, one zone at a time, during the worker phase.
+
+[source,text]
+----
+Phase 1: Control Plane Only
+─────────────────────────────────────────────────────────
+  Masters:   4.18 ──► 4.19 ──► 4.20    (sequential)
+  Workers:   4.18     4.18     4.18    (paused, no change)
+─────────────────────────────────────────────────────────
+
+Phase 2: Worker Zone Upgrade  (one zone at a time)
+─────────────────────────────────────────────────────────
+  Zone 0:    4.18 ──────────────────► 4.20  (parallel reboot)
+  Zone 1:         4.18 ─────────────► 4.20  (parallel reboot)
+  Zone 2:              4.18 ─────────► 4.20  (parallel reboot)
+─────────────────────────────────────────────────────────
+----
+
+[#pillar-1-architecture]
+== Pillar 1: Resilient Cluster Architecture
+
+The first and most important pillar is the cluster's physical and logical structure. The goal is to transform the upgrade from a slow serial operation into a fast parallel one by grouping nodes into *upgrade units* that map to Kubernetes *failure domains*.
+
+[#mcps-as-upgrade-units]
+=== MachineConfigPools as Upgrade Units
+
+An OpenShift https://docs.openshift.com/container-platform/{lab-major-version}/post_installation_configuration/machine-configuration-tasks.html#understanding-the-machine-config-operator[MachineConfigPool (MCP)] is the logical unit used to group worker nodes that share the same configuration and lifecycle. In the Fast MNO Upgrade methodology, a custom MCP is created for each *failure domain*, so that the Machine Config Operator (MCO) can upgrade all nodes within a zone at the same time.
+
+Two specific MCP settings are critical to this methodology:
+
+* `maxUnavailable: "100%"` — Instructs the MCO to drain and reboot all nodes in the MCP simultaneously instead of one at a time. This is safe because the MCP only covers a small fraction of the total cluster capacity (e.g., ~33% with 3 zones).
+* `paused: true` — Prevents the worker nodes from receiving any machine config changes while the control plane upgrade is in progress. Workers are only unpaused when it is their turn to be upgraded.
+
+[source,yaml]
+----
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: worker-0
+  labels:
+    machineconfiguration.openshift.io/role: worker-0
+spec:
+  machineConfigSelector:
+    matchExpressions:
+    - key: machineconfiguration.openshift.io/role
+      operator: In
+      values: [ worker, worker-0 ]
+  paused: true          # <1>
+  maxUnavailable: 100%  # <2>
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/worker-0: ""
+----
+<1> Keeps worker nodes frozen during the control plane upgrade phase.
+<2> Allows all nodes in this MCP to reboot at the same time during the worker phase.
+
+IMPORTANT: The default `worker` MCP must be left empty. All worker nodes should be assigned exclusively to custom MCPs (one per failure domain). If nodes remain in the default `worker` MCP, those nodes will begin upgrading as soon as the control plane upgrade completes, bypassing the controlled sequencing.
+
+[#failure-domains]
+=== Kubernetes Failure Domains
+
+While MCPs handle the upgrade orchestration, the Kubernetes scheduler needs to know which nodes belong to the same failure domain so that it can spread application pods across zones. This is done by labeling each node with the standard Kubernetes topology label:
+
+[source,console]
+----
+topology.kubernetes.io/zone=<zone-name>
+----
+
+When pods are scheduled on a cluster with this label, the scheduler automatically distributes replicas across different zones using a best-effort topology spread. This means that if one entire zone is taken offline for an upgrade, the pods from that zone have a natural landing place in the remaining zones.
+
+IMPORTANT: The `topology.kubernetes.io/zone` label must be present on nodes *before* workload pods are first scheduled. Labels applied after pods are already running will only take effect when those pods are rescheduled.
+
+[#spare-capacity]
+=== The Spare Capacity Rule
+
+The parallel upgrade strategy only works if the cluster has enough *spare capacity* to absorb the workload from the zone being upgraded. The rule is simple:
+
+[source,text]
+----
+Total Workload < (Total Cluster Capacity − Capacity of 1 Failure Domain)
+----
+
+In a cluster with 3 equally-sized failure domains, each zone represents ~33% of the total capacity. The spare capacity rule therefore means the total workload must consume less than *~66%* of the cluster's allocatable resources.
+
+.Spare capacity calculation example
+[cols="1,1,1", options="header"]
+|===
+| Number of failure domains | Size of one zone | Maximum workload %
+| 3 | 33% | 66%
+| 4 | 25% | 75%
+| 5 | 20% | 80%
+| 10 | 10% | 90%
+|===
+
+NOTE: More failure domains means a smaller percentage is taken offline at once, which allows a higher workload density. The trade-off is more sequential steps (and more CGUs) during the worker upgrade phase.
+
+[#cluster-partition-diagram]
+=== Cluster Partitioning Overview
+
+The following diagram illustrates how a 9-worker-node cluster is partitioned into 3 MCPs, each corresponding to one Kubernetes failure domain.
+
+image::fast-mno-upgrades-cluster-partitioning.png[Cluster Partitioning Overview]
+
+[#pillar-2-workload]
+== Pillar 2: Cloud-native Workload Design
+
+The architecture alone is not enough. The workloads running on the cluster must also be designed to tolerate the temporary loss of an entire failure domain. This is what the second pillar addresses.
+
+[#pod-disruption-budgets]
+=== PodDisruptionBudgets
+
+A https://kubernetes.io/docs/tasks/run-application/configure-pdb/[PodDisruptionBudget (PDB)] is a Kubernetes resource that defines the maximum disruption an application can tolerate during voluntary disruptions — such as a node drain during an upgrade. The MCO respects PDBs and will not force-drain a node if doing so would violate the budget.
+
+[source,yaml]
+----
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: stress-app-pdb
+  namespace: workload-demo
+spec:
+  maxUnavailable: 2     # <1>
+  selector:
+    matchLabels:
+      app: stress-app
+----
+<1> No more than 2 replicas of this application may be unavailable at the same time.
+
+The `maxUnavailable` value in the PDB has a direct impact on the upgrade design: it determines the *maximum number of replicas* that can be co-located in a single failure domain. Placing more replicas than `maxUnavailable` in the same zone would cause the MCO to be unable to drain all nodes in that zone simultaneously, serializing the reboot and defeating the purpose of the parallel upgrade.
+
+IMPORTANT: If you have an application with `maxUnavailable: 1`, you must ensure that no more than 1 replica is scheduled per failure domain. Exceeding this will cause the upgrade to serialize node reboots within the MCP, slowing down the process.
+
+[#even-distribution]
+=== Even Pod Distribution
+
+For the parallel upgrade to work as designed, application pods must be distributed as evenly as possible across failure domains. The Kubernetes scheduler does this automatically using a best-effort topology spread based on the `topology.kubernetes.io/zone` labels.
+
+However, system components (such as Prometheus, Thanos, or the OpenShift Router) may not always be evenly distributed, especially if zone labels were added after the cluster was installed. The https://github.com/imiller0/pdbCheck[`pdbCheck`] community utility can identify these imbalances and help resolve them before the upgrade begins by simulating the drain of each zone and reporting any PDB violations.
+
+NOTE: https://github.com/imiller0/pdbCheck[`pdbCheck`] is a community tool developed by Red Hat engineering. It is not an officially supported Red Hat product and is provided as-is. It is a helpful pre-upgrade diagnostic aid.
+
+[#resource-sizing]
+=== Resource Sizing for Spare Capacity
+
+The workload's resource requests must respect the spare capacity rule described in <<spare-capacity>>. In practice, the sizing is derived as follows:
+
+. Determine the application's PDB `maxUnavailable` value — this caps how many replicas can be in any single zone.
+. Calculate the total allocatable cluster capacity (accounting for OS and platform overhead, typically 10–15%).
+. Ensure the total resource requests of all replicas fit within the capacity of the remaining zones when one zone is taken offline.
+
+For example, in a cluster where one zone represents ~33% of capacity, the total workload must not exceed ~66% of the cluster's allocatable CPU and memory.
+
+[#pillar-3-automation]
+== Pillar 3: Zero-Touch Automation with ACM and TALM
+
+The third pillar converts the upgrade from a complex, error-prone manual operation into a fully automated, reproducible process. Red Hat Advanced Cluster Management (ACM) and the Topology Aware Lifecycle Manager (TALM) operator are the two tools that make this possible.
+
+[#acm-policies]
+=== ACM Policies
+
+Every discrete action in the upgrade process is defined as an https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.12/html/governance/governance[ACM Policy]. A policy is a declarative definition of the desired state for a specific Kubernetes resource on the managed spoke cluster. For a detailed explanation of the ACM Policy framework and how policies work in this lab, refer to the xref:rhacm-policies.adoc#policy-framework[RHACM Governance Policy Framework] section. Examples of upgrade policies include:
+
+* `core-upgrade-prep-19` — Updates the OLM CatalogSource to point to the v{lab-mid-version} operator index and pauses all worker MCPs.
+* `core-upgrade-ocp-19` — Sets the `ClusterVersion` desired update to {lab-mid-version}, triggering the control plane upgrade.
+* `core-upgrade-olm-19` — Updates all OLM operators to their {lab-mid-version}-compatible versions.
+* `core-upgrade-validate-19` — Verifies that the upgrade to {lab-mid-version} completed successfully.
+* (Equivalent set of policies exists for {lab-major-version}.)
+* `core-upgrade-workers-0` through `core-upgrade-workers-2` — Unpauses each worker MCP in turn to trigger the parallel worker node upgrade.
+
+All policies are created in `remediationAction: inform` mode. In this state, ACM monitors the cluster and reports compliance, but does not make any changes. This allows all policies to be pre-created and validated before the upgrade window begins, and then activated in a controlled, sequenced manner by TALM.
+
+[#talm-orchestration]
+=== TALM and ClusterGroupUpgrade Orchestration
+
+https://docs.openshift.com/container-platform/{lab-major-version}/edge_computing/cnf-talm-for-cluster-updates.html[TALM] manages the lifecycle of the upgrade by processing a series of `ClusterGroupUpgrade` (CGU) custom resources. A CGU references one or more ACM policies and moves them from `inform` to `enforce` on the target cluster, causing ACM to apply the desired state. For a detailed explanation of TALM and how it works in this lab, refer to the xref:talm.adoc#talm[Topology Aware Lifecycle Manager (TALM)] section.
+
+The `blockingCRs` field in a CGU creates an explicit dependency between stages: a CGU will not start until all CGUs listed in its `blockingCRs` have completed successfully. This is the mechanism that enforces the correct ordering of the upgrade stages.
+
+[source,yaml]
+----
+apiVersion: ran.openshift.io/v1alpha1
+kind: ClusterGroupUpgrade
+metadata:
+  name: core-upgrade-ocp-19
+  namespace: ztp-install
+spec:
+  blockingCRs:                    # <1>
+  - name: core-upgrade-prep-19
+    namespace: ztp-install
+  clusters:
+  - cnf77
+  enable: true
+  managedPolicies:
+  - core-upgrade-ocp-19
+  remediationStrategy:
+    maxConcurrency: 1
+    timeout: 240
+----
+<1> This CGU will not start until `core-upgrade-prep-19` has completed.
+
+[#upgrade-stages]
+=== End-to-End Upgrade Stage Sequence
+
+The full EUS-to-EUS upgrade is broken down into a series of CGUs that execute in the following sequence:
+
+.EUS-to-EUS upgrade stage sequence
+[cols="1,2,3", options="header"]
+|===
+| Stage | CGU name | What it does
+| 1 | `core-upgrade-prep-19` | Pauses all worker MCPs, sets `maxUnavailable: 100%`, updates CatalogSource to {lab-mid-version}
+| 2 | `core-upgrade-ocp-19` | Upgrades OCP control plane from {lab-minor-version} to {lab-mid-version}
+| 3 | `core-upgrade-olm-19` | Updates all OLM operators to {lab-mid-version}-compatible versions
+| 4 | `core-upgrade-validate-19` | Validates control plane is healthy and operators are running at {lab-mid-version}
+| 5 | `core-upgrade-prep-20` | Updates CatalogSource to {lab-major-version}
+| 6 | `core-upgrade-ocp-20` | Upgrades OCP control plane from {lab-mid-version} to {lab-major-version}
+| 7 | `core-upgrade-olm-20` | Updates all OLM operators to {lab-major-version}-compatible versions
+| 8 | `core-upgrade-validate-20` | Validates control plane is healthy at {lab-major-version}
+| 9–11 | `core-upgrade-workers-0/1/2` | Sequentially unpauses each of the 3 worker MCPs, triggering parallel reboot of all nodes in that zone
+|===
+
+Each stage blocks on the previous one via `blockingCRs`, ensuring the upgrade proceeds in the correct order and that no stage starts unless the prior one has been verified as complete.
+
+[#key-benefits]
+== Key Benefits
+
+The Fast MNO Upgrade methodology delivers the following measurable advantages over traditional approaches:
+
+* *3x faster upgrade times* — Parallel zone reboots and the control plane first strategy dramatically reduce the total upgrade window.
+* *Single reboot per worker node* — Each worker node reboots only once for the entire {lab-minor-version} to {lab-major-version} upgrade, instead of once per intermediate version.
+* *High availability maintained* — PDBs and spare capacity planning ensure the workload continues to serve traffic throughout the upgrade. No PDB violations occur.
+* *Zero manual intervention* — The entire process from preparation to validation is driven by ACM Policies and TALM CGUs, making it repeatable and auditable.
+* *Scalable to large fleets* — Because the process is fully declarative and Git-driven, the same set of policies and CGUs can be applied to hundreds of clusters simultaneously using ACM's fleet management capabilities.
+* *Works under realistic load* — The methodology is designed and validated with clusters running at approximately 70% resource utilization, reflecting real production environments.
+
+NOTE: In the hands-on section that follows, you will apply this methodology directly on a live MNO cluster managed by ACM and TALM, observing each stage as it completes.

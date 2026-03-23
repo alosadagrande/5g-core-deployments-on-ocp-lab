@@ -123,6 +123,15 @@
 *** xref:deployment-considerations.adoc#fully-disconnected[Fully disconnected]
 ** xref:deployment-considerations.adoc#git-repo-structure[Git Repository Structure]
 
+* xref:fast-mno-upgrades.adoc[Fast MNO Upgrades]
+** xref:fast-mno-upgrades.adoc#introduction[Introduction]
+** xref:fast-mno-upgrades.adoc#prerequisites[Prerequisites]
+** xref:fast-mno-upgrades.adoc#resilient-cluster-architecture[Resilient Cluster Architecture]
+** xref:fast-mno-upgrades.adoc#cloud-native-workload-design[Cloud-native Workload Design]
+** xref:fast-mno-upgrades.adoc#zero-touch-automation[Zero-Touch Automation]
+** xref:fast-mno-upgrades.adoc#upgrade-stages[Upgrade Stages]
+** xref:fast-mno-upgrades.adoc#key-benefits[Key Benefits]
+
 * xref:lab-environment-introduction.adoc[Introduction to the Lab Environment]
 ** xref:lab-environment-introduction.adoc#git-server[Git Server]
 ** xref:lab-environment-introduction.adoc#container-registry[Container Registry]
