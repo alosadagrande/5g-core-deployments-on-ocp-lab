@@ -57,7 +57,7 @@ policies:
     - path: source-crs/reference-crs/required/other/catalog-source.yaml
       patches:
         - metadata:
-            name: redhat-operators-index
+            name: redhat-operators-disconnected
           spec:
             image: infra.5g-deployment.lab:8443/redhat/redhat-operator-index:{catalogsource-index-image-tag-ocp-release}
     - path: source-crs/reference-crs/required/performance/PerformanceProfile.yaml
@@ -266,7 +266,7 @@ policies:
     - path: source-crs/reference-crs/required/other/catalog-source.yaml
       patches:
         - metadata:
-            name: redhat-operators-index
+            name: redhat-operators-disconnected
           spec:
             image: infra.5g-deployment.lab:8443/redhat/redhat-operator-index:{catalogsource-index-image-tag-ocp-release}
     - path: source-crs/reference-crs/required/performance/PerformanceProfile.yaml
