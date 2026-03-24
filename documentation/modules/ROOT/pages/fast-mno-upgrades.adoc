@@ -159,12 +159,12 @@ metadata:
   name: stress-app-pdb
   namespace: workload-demo
 spec:
-  maxUnavailable: 2     # <1>
+  maxUnavailable: 3     # <1>
   selector:
     matchLabels:
       app: stress-app
 ----
-<1> No more than 2 replicas of this application may be unavailable at the same time.
+<1> No more than 3 replicas of this application may be unavailable at the same time.
 
 The `maxUnavailable` value in the PDB has a direct impact on the upgrade design: it determines the *maximum number of replicas* that can be co-located in a single failure domain. Placing more replicas than `maxUnavailable` in the same zone would cause the MCO to be unable to drain all nodes in that zone simultaneously, serializing the reboot and defeating the purpose of the parallel upgrade.
 

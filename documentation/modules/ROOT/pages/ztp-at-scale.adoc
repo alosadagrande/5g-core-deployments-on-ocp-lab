@@ -10,7 +10,7 @@ IMPORTANT: Since OpenShift 4.18, the `SiteConfig` resource managed by the SiteCo
 
 * *Red Hat Advanced Cluster Management* installed on the hub cluster, at the heart of the architecture.
 * The *Red Hat OpenShift GitOps* operator allows building and integrating declarative Git-driven workflows. It is a key component and it is extended with the `policy-generator` kustomize plugin. The `siteconfig-generator` is no longer needed as it is replaced by the SiteConfig Operator.
-* The *SiteConfig Operator* enables users to deploy clusters using either the {ai-workflow}[Agent Based Installation] or {ibi-docs}[Image Based Installation] deployment flows through the ClusterInstance API. The ClusterInstance CR will be rendered by the SiteConfig Operator as installation CRs.
+* The *SiteConfig Operator* enables users to deploy clusters using either the {ai-workflow}[Agent Based Installation] or the {ibi-docs}[Image Based Installation] deployment flows through the ClusterInstance API. Currently, the IBI flow is only targeting {sno-installing-docs}[Single Node OpenShift] (SNO) clusters. The ClusterInstance CR will be rendered by the SiteConfig Operator as installation CRs.
 * The *Assisted Service* operator, now called Infrastructure operator, is a component of the Multicluster Engine Operator and is responsible for provisioning OpenShift clusters. It is part of the {ai-workflow}[Assisted Installer deployment workflow].
 * The *Topology Aware Lifecycle Manager* (TALM) is responsible for managing the software lifecycle of the managed clusters.
  
@@ -43,11 +43,9 @@ The SiteConfig Operator introduces a unified ClusterInstance API, which is deriv
 
 Because of this decoupling, the SiteConfig Operator allows deploying OpenShift clusters using either the {ai-workflow}[Agent Based Installation] or {ibi-docs}[Image Based Installation] flows depending on the user's needs. See as well that the operator is the entry point for any GitOps ZTP deployment.
 
-IMPORTANT: In Telco environments, especially in RAN, the *Image Based Installation* deployment method is the preferred one due to the reduced installation times and the scalability requirements required in edge deployments.
+IMPORTANT: In Single Node OpenShift Telco RAN environments the *Image Based Installation* deployment method is the preferred one due to the reduced installation times and the scalability requirements required in edge deployments. For Telco Core, ZTP provisions multi-node OpenShift (MNO) clusters using the Agent Based Installation flow through the SiteConfig Operator. 
 
 The SiteConfig Operator dynamically generates installation manifests based on user-defined cluster templates that are instantiated from the data in the ClusterInstance CR. You can source the ClusterInstance CR from your Git repository through ArgoCD, or manually on the hub cluster.
-
-TIP: The SiteConfig Operator creates two Red Hat tested cluster templates by default. One for Agent Based Installations and one for Image Based Installations. Users can provide their own templates, the specific process of bringing your own templates is not covered in this lab.
 
 As shown in the picture, the process involves the following steps:
 
