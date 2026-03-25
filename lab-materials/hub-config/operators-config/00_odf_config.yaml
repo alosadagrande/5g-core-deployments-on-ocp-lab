@@ -1,0 +1,87 @@
+apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
+metadata:
+  name: local-block
+  namespace: openshift-local-storage
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+    - matchExpressions:
+        - key: node-role.kubernetes.io/worker
+          operator: In
+          values:
+          - ""
+  storageClassDevices:
+    - storageClassName: localblock
+      volumeMode: Block
+      devicePaths:
+        - /dev/vdb
+---
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  name: ocs-storagecluster
+  namespace: openshift-storage
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  manageNodes: false
+  network:
+    ipFamily: IPv4
+  managedResources: {}
+  monDataDirHostPath: /var/lib/rook
+  multiCloudGateway:
+    reconcileStrategy: manage
+  resources:
+    mgr:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    mds:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    mon:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    osd:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    rgw:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    noobaa-core:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    noobaa-db:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    noobaa-db-vol:
+      requests:
+        storage: 50Gi
+    noobaa-endpoint:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+  storageDeviceSets:
+  - count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1
+        storageClassName: localblock
+        volumeMode: Block
+    name: ocs-deviceset
+    placement: {}
+    portable: false
+    replica: 3
