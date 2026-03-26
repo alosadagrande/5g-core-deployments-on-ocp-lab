@@ -100,7 +100,7 @@ do
   touch site-configs/{hub-1,resources,pre-reqs/mno-cluster,hub-1/extra-manifest,install-manifests/${release}/extra-manifests,install-manifests/${release}/custom-manifests}/.gitkeep
   touch site-policies/{fleet/active/v${release}/source-crs/reference-crs,fleet/active/v${release}/source-crs/custom-crs}/.gitkeep
 done
-mkdir -p site-policies/{fleet/testing/{openshift-next-release}/source-crs/reference-crs,fleet/testing/{openshift-next-release}/source-crs/custom-crs}
+mkdir -p site-policies/{fleet/testing/{openshift-release}/source-crs/reference-crs,fleet/testing/{openshift-release}/source-crs/custom-crs}
 git add --all
 git commit -m 'Initialized repo structure'
 git push origin main

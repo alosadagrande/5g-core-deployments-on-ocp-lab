@@ -31,6 +31,9 @@ disconnected_operators:
 - name: lvms-operator
   channels:
   - name: stable-4.20
+- name: local-storage-operator
+  channels:
+  - name: stable
 - name: sriov-network-operator
   channels:
   - name: stable
@@ -85,6 +88,9 @@ disconnected_operators:
 - name: rook-ceph-operator
   channels:
   - name: stable-4.20
+- name: ceph-csi-operator
+  channels:
+  - name: stable-4.20
 disconnected_extra_images:
 - registry.redhat.io/openshift4/ztp-site-generate-rhel8:v4.20.0-1
 # Image below is required for kustomize plugins
@@ -107,7 +113,7 @@ lvms_devices:
 apps:
 - users
 - openshift-gitops-operator
-- lvms-operator
+#- lvms-operator
 vmrules:
 - hub-bootstrap: 
     nets:

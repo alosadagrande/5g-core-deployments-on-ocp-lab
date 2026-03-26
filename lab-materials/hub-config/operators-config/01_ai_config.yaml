@@ -212,14 +212,14 @@ spec:
   mirrorRegistryRef:
     name: custom-registries
   databaseStorage:
-    storageClassName: lvms-vg1
+    storageClassName: odf-storagecluster-ceph-rbd
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
         storage: 10Gi
   filesystemStorage:
-    storageClassName: lvms-vg1
+    storageClassName: odf-storagecluster-ceph-rbd
     accessModes:
     - ReadWriteOnce
     resources:
