@@ -30,7 +30,10 @@ spec:
   manageNodes: false
   network:
     ipFamily: IPv4
-  managedResources: {}
+  managedResources:
+    cephClusters:
+      cleanupPolicy:
+        wipeDevicesFromOtherClusters: true
   monDataDirHostPath: /var/lib/rook
   multiCloudGateway:
     reconcileStrategy: manage
@@ -85,3 +88,7 @@ spec:
     placement: {}
     portable: false
     replica: 3
+    resources:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
