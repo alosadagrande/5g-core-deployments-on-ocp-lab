@@ -9,7 +9,7 @@ spec:
   nodeSelector:
     nodeSelectorTerms:
     - matchExpressions:
-        - key: node-role.kubernetes.io/worker
+        - key: cluster.ocs.openshift.io/openshift-storage
           operator: In
           values:
           - ""
