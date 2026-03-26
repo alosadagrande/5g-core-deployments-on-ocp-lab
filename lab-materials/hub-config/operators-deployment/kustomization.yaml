@@ -3,7 +3,7 @@ kind: Kustomization
 resources:
   - 00_odf_deployment.yaml
   - 01_rhacm_deployment.yaml
-  - 02_talm_deployment.yaml
-  - 03_mce_deployment.yaml
-  - 04_ptp_deployment.yaml
-  - 05_logging_deployment.yaml
+  - 02_mce_deployment.yaml
+  - 03_ptp_deployment.yaml
+  - 04_logging_deployment.yaml
+  - 05_talm_deployment.yaml
