@@ -31,7 +31,7 @@ spec:
   network:
     ipFamily: IPv4
   managedResources:
-    cephClusters:
+    cephCluster:
       cleanupPolicy:
         wipeDevicesFromOtherClusters: true
   monDataDirHostPath: /var/lib/rook

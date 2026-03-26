@@ -15,6 +15,7 @@ disconnected_password: r3dh4t1!
 disconnected_operators_version: v4.20-1769431701
 disconnected_prefix: openshift/release-images
 prega: False
+manifests: install-extra-manifests/
 disconnected_operators:
 - name: advanced-cluster-management
   channels:
