@@ -212,14 +212,14 @@ spec:
   mirrorRegistryRef:
     name: custom-registries
   databaseStorage:
-    storageClassName: odf-storagecluster-ceph-rbd
+    storageClassName: ocs-storagecluster-ceph-rbd
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
         storage: 10Gi
   filesystemStorage:
-    storageClassName: odf-storagecluster-ceph-rbd
+    storageClassName: ocs-storagecluster-ceph-rbd
     accessModes:
     - ReadWriteOnce
     resources:

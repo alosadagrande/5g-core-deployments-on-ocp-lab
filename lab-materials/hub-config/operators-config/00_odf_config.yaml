@@ -9,7 +9,7 @@ spec:
   nodeSelector:
     nodeSelectorTerms:
     - matchExpressions:
-        - key: node-role.kubernetes.io/worker
+        - key: cluster.ocs.openshift.io/openshift-storage
           operator: In
           values:
           - ""
@@ -27,10 +27,12 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  manageNodes: false
   network:
     ipFamily: IPv4
-  managedResources: {}
+  managedResources:
+    cephCluster:
+      cleanupPolicy:
+        wipeDevicesFromOtherClusters: true
   monDataDirHostPath: /var/lib/rook
   multiCloudGateway:
     reconcileStrategy: manage
@@ -85,3 +87,7 @@ spec:
     placement: {}
     portable: false
     replica: 3
+    resources:
+      requests:
+        cpu: "1m"
+        memory: 1Mi

@@ -4,9 +4,9 @@ commonAnnotations:
   argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 resources:
   - 00_odf_config.yaml
-  - 01_rhacm_config.yaml
-  - 02_ai_config.yaml
-  - 03_patch_provisioning.yaml
-  - 04_mce_config.yaml
-  - 05_ptp_config.yaml
-  - 06_logging_config.yaml
+  - 01_ai_config.yaml
+  - 02_patch_provisioning.yaml
+  - 03_mce_config.yaml
+  - 04_ptp_config.yaml
+  - 05_logging_config.yaml
+  - 06_rhacm_config.yaml
