@@ -105,3 +105,21 @@ spec:
   name: odf-csi-addons-operator
   source: cs-redhat-operator-index-v4-20-176943
   sourceNamespace: openshift-marketplace
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: odf-external-snapshotter-operator
+  namespace: openshift-storage
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  channel: "stable-4.20"
+  name: odf-external-snapshotter-operator
+  source: cs-redhat-operator-index-v4-20-176943
+  sourceNamespace: openshift-marketplace
+  config:
+    resources:
+      requests:
+        memory: "1m"
+        cpu: "1"
