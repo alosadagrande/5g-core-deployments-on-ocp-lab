@@ -252,7 +252,9 @@ This split-version state (masters at `{lab-mid-version}`, workers at `{lab-minor
 [#monitor-stage2]
 == Monitoring Stage 2 — {lab-mid-version} → {lab-major-version} Control Plane
 
-As soon as `upgrade-19` completes, TALM automatically adds the `upgrade-version-4-20` label to the cluster. This activates the `{lab-major-version}` placement, binding the `{lab-major-version}` policies to the cluster. TALM then moves `upgrade-20` to `InProgress`.
+As soon as `upgrade-19` completes, TALM automatically moves `fast-upgrade-20` to `InProgress`. We can see from the RHACM console that the policies related to the upgrade to `{lab-major-version}` are being remediated one by one. See the progress in the image below:
+
+image::fast-upgrade-upgrade-420-inprogress.png[Fast Upgrade 4.20 In Progress]
 
 Check the CGU chain status:
 
@@ -281,7 +283,7 @@ oc --kubeconfig ~/mno-kubeconfig get clusterversion
 [source,bash,subs="attributes+,+macros"]
 ----
 NAME      VERSION               AVAILABLE   PROGRESSING   STATUS
-version   {mno-cluster-version2-cvo}   True        True          Working towards {mno-cluster-version3-cvo}: 119 of 956 done (12% complete)
+version   {mno-cluster-version2-cvo}   True        True          Working towards {mno-cluster-version3-cvo}: 119 of 957 done (12% complete)
 ----
 
 Confirm that all worker MCPs remain paused and not updating:

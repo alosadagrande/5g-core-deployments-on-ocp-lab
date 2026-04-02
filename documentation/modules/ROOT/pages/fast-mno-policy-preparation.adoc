@@ -281,16 +281,19 @@ policies:
         - spec:
           # Adjust as needed based on spare capacity, cluster design, and application requirements
             maxUnavailable: "100%"
+            paused: true
       - path: v4.19/source-crs/reference-crs/custom-manifests/mcp-worker-1.yaml
         patches:
         - spec:
           # Adjust as needed based on spare capacity, cluster design, and application requirements
             maxUnavailable: "100%"
+            paused: true
       - path: v4.19/source-crs/reference-crs/custom-manifests/mcp-worker-2.yaml
         patches:
         - spec:
           # Adjust as needed based on spare capacity, cluster design, and application requirements
             maxUnavailable: "100%"
+            paused: true
 ----
 
 [#policy-core-upgrade-ocp-19]
@@ -477,14 +480,17 @@ policies:
         patches:
         - spec:
             maxUnavailable: "100%"
+            paused: true
       - path: v4.19/source-crs/reference-crs/custom-manifests/mcp-worker-1.yaml
         patches:
         - spec:
             maxUnavailable: "100%"
+            paused: true
       - path: v4.19/source-crs/reference-crs/custom-manifests/mcp-worker-2.yaml
         patches:
         - spec:
             maxUnavailable: "100%"
+            paused: true
   - name: core-upgrade-ocp-19
     manifests:
       - path: v4.19/source-crs/reference-crs/optional/other/ClusterVersion.yaml
@@ -600,7 +606,7 @@ policies:
       - path: v4.20/source-crs/reference-crs/required/other/catalog-source.yaml
         patches:
         - spec:
-            image: infra.5g-deployment.lab:8443/redhat/redhat-operator-index:{catalogsource-index-image-tag-ocp-major-release}
+            image: infra.5g-deployment.lab:8443/redhat/redhat-operator-index:{catalogsource-index-image-tag-ocp-next-release}
         - status:
             connectionState:
               lastObservedState: READY
@@ -616,16 +622,19 @@ policies:
         - spec:
           # Adjust as needed based on spare capacity, cluster design, and application requirements
             maxUnavailable: "100%"
+            paused: true
       - path: v4.20/source-crs/reference-crs/custom-manifests/mcp-worker-1.yaml
         patches:
         - spec:
           # Adjust as needed based on spare capacity, cluster design, and application requirements
             maxUnavailable: "100%"
+            paused: true
       - path: v4.20/source-crs/reference-crs/custom-manifests/mcp-worker-2.yaml
         patches:
         - spec:
           # Adjust as needed based on spare capacity, cluster design, and application requirements
             maxUnavailable: "100%"
+            paused: true
 ----
 
 
@@ -789,7 +798,7 @@ policies:
       - path: v4.20/source-crs/reference-crs/required/other/catalog-source.yaml
         patches:
         - spec:
-            image: infra.5g-deployment.lab:8443/redhat/redhat-operator-index:{catalogsource-index-image-tag-ocp-major-release}
+            image: infra.5g-deployment.lab:8443/redhat/redhat-operator-index:{catalogsource-index-image-tag-ocp-next-release}
         - status:
             connectionState:
               lastObservedState: READY
@@ -797,14 +806,17 @@ policies:
         patches:
         - spec:
             maxUnavailable: "100%"
+            paused: true
       - path: v4.20/source-crs/reference-crs/custom-manifests/mcp-worker-1.yaml
         patches:
         - spec:
             maxUnavailable: "100%"
+            paused: true
       - path: v4.20/source-crs/reference-crs/custom-manifests/mcp-worker-2.yaml
         patches:
         - spec:
             maxUnavailable: "100%"
+            paused: true
   - name: core-upgrade-ocp-20
     manifests:
       - path: v4.20/source-crs/reference-crs/optional/other/ClusterVersion.yaml
