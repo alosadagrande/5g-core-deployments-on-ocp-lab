@@ -256,6 +256,7 @@ spec:
     ManagedCluster:
       common: "{policygen-common-label-ocp-release}"
       logicalGroup: "active"
+      rds: "core"
       group-core: ""
       core-site: "mno"
       core-zone: "europe"
