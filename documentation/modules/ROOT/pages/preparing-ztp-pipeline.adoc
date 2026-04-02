@@ -53,15 +53,19 @@ As we saw in link:deployment-considerations.html#git-repo-structure[Git Reposito
 -----
 ├── site-configs
 │   ├── hub-1
-│   │   ├── pre-reqs
-│   │   │   └── sno-abi
-|   │   |   └── sno-ibi
 |   |   └── extra-manifest
-|   |   └── reference-manifest
-|   |   |   └── {lab-major-version}
-│   ├── pre-reqs
-│   │   └── sno-abi
-|   |   └── sno-ibi
+│   ├── install-manifests
+|   |   ├── {lab-minor-version}
+|   |   |   └── extra-manifests
+|   |   |   └── custom-manifests
+|   |   ├── {openshift-intermediate-release}
+|   |   |   └── extra-manifests
+|   |   |   └── custom-manifests
+|   |   ├── {openshift-final-release}
+|   |   |   └── extra-manifests
+|   |   |   └── custom-manifests
+│   └── pre-reqs
+|   |   └── mno-cluster
 │   └── resources
 └── site-policies
     ├── fleet
@@ -70,7 +74,11 @@ As we saw in link:deployment-considerations.html#git-repo-structure[Git Reposito
     |   |   │   └── source-crs
     |   |   |   |   └── reference-crs
     |   |   |   |   └── custom-crs
-    |   │   └── {openshift-previous-release}
+    |   │   └── {openshift-intermediate-release}
+    |   |   │   └── source-crs
+    |   |   |   |   └── reference-crs
+    |   |   |   |   └── custom-crs
+    |   │   └── {openshift-final-release}
     |   |   │   └── source-crs
     |   |   |   |   └── reference-crs
     |   |   |   |   └── custom-crs
@@ -176,15 +184,7 @@ sed -i "s|targetRevision: .*|targetRevision: main|" ~/5g-deployment-lab/ztp-pipe
 sed -i "s|targetRevision: .*|targetRevision: main|" ~/5g-deployment-lab/ztp-pipeline/argocd/deployment/policies-app.yaml
 -----
 +
-3. Include `openshift-adp` namespace in the list of namespaces managed by the GitOps operator to ensure that policies related to OpenShift Data Protection (such as backup and restore operations) are also managed by the GitOps pipeline.
-+
-[.console-input]
-[source,bash,subs="attributes+,+macros"]
------
-sed -i "/destinations:/a \ \ - namespace: \'openshift-adp\'\n \ \ \ server: '\*\'" ~/5g-deployment-lab/ztp-pipeline/argocd/deployment/policies-app-project.yaml
------
-+
-4. Apply the ZTP GitOps Pipeline configuration:
+3. Apply the ZTP GitOps Pipeline configuration:
 +
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
