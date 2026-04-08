@@ -895,9 +895,9 @@ Let's add the {rds-config}[reference RAN DU configuration] for the version of OC
 [source,bash,subs="attributes+,+macros"]
 -----
 podman login infra.5g-deployment.lab:8443 -u admin -p r3dh4t1! --tls-verify=false
-podman run --log-driver=none --rm --tls-verify=false {ztp-core-reference-418-disconnected-image} | base64 -d | tar x -C ~/5g-deployment-lab/ztp-repository/site-configs/install-manifests/{lab-minor-version}/extra-manifests/ --strip-components=3 telco-core-rds/install/extra-manifests/
-podman run --log-driver=none --rm --tls-verify=false {ztp-core-reference-419-disconnected-image} | base64 -d | tar x -C ~/5g-deployment-lab/ztp-repository/site-configs/install-manifests/{lab-mid-version}/extra-manifests/ --strip-components=3 telco-core-rds/install/extra-manifests/
-podman run --log-driver=none --rm --tls-verify=false {ztp-core-reference-420-disconnected-image} | base64 -d | tar x -C ~/5g-deployment-lab/ztp-repository/site-configs/install-manifests/{lab-major-version}/extra-manifests/ --strip-components=3 telco-core-rds/install/extra-manifests/
+podman run --log-driver=none --rm --tls-verify=false {ztp-core-reference-ocp-release-disconnected-image} | base64 -d | tar x -C ~/5g-deployment-lab/ztp-repository/site-configs/install-manifests/{lab-minor-version}/extra-manifests/ --strip-components=3 telco-core-rds/install/extra-manifests/
+podman run --log-driver=none --rm --tls-verify=false {ztp-core-reference-ocp-intermediate-release-disconnected-image} | base64 -d | tar x -C ~/5g-deployment-lab/ztp-repository/site-configs/install-manifests/{lab-mid-version}/extra-manifests/ --strip-components=3 telco-core-rds/install/extra-manifests/
+podman run --log-driver=none --rm --tls-verify=false {ztp-core-reference-ocp-next-release-disconnected-image} | base64 -d | tar x -C ~/5g-deployment-lab/ztp-repository/site-configs/install-manifests/{lab-major-version}/extra-manifests/ --strip-components=3 telco-core-rds/install/extra-manifests/
 -----
 
 `reference-manifest/{lab-major-version}/` refers to the Git subdirectory that stores the contents of the RAN configuration for a specific version, in this case {lab-major-version}. Different versions of the RAN DU configuration can coexist by extracting them from the appropriate `ztp-site-generate` container version to a different `extra-manifest` folder. Then, the user only needs to include the right `reference-manifest` version folder to the cluster version being installed.

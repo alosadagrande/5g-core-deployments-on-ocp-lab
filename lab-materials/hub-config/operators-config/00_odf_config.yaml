@@ -29,6 +29,7 @@ metadata:
 spec:
   network:
     ipFamily: IPv4
+  hostNetwork: true
   managedResources:
     cephCluster:
       cleanupPolicy:
