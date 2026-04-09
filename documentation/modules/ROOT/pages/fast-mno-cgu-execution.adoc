@@ -203,18 +203,18 @@ oc --kubeconfig ~/mno-kubeconfig get nodes
 [source,bash,subs="attributes+,+macros"]
 ----
 NAME                   STATUS                        ROLES                  VERSION
-master-0.mno.example   Ready                         control-plane,master   v1.31.x
-master-1.mno.example   Ready                         control-plane,master   v1.31.x
-master-2.mno.example   NotReady,SchedulingDisabled   control-plane,master   v1.31.x
-worker-00.mno.example  Ready                         worker,worker-0        v1.31.x
-worker-01.mno.example  Ready                         worker,worker-0        v1.31.x
-worker-02.mno.example  Ready                         worker,worker-0        v1.31.x
-worker-10.mno.example  Ready                         worker,worker-1        v1.31.x
-worker-11.mno.example  Ready                         worker,worker-1        v1.31.x
-worker-12.mno.example  Ready                         worker,worker-1        v1.31.x
-worker-20.mno.example  Ready                         worker,worker-2        v1.31.x
-worker-21.mno.example  Ready                         worker,worker-2        v1.31.x
-worker-22.mno.example  Ready                         worker,worker-2        v1.31.x
+master-0.mno.example   Ready                         control-plane,master   {mno-cluster-version1-kubeversion}
+master-1.mno.example   Ready                         control-plane,master   {mno-cluster-version1-kubeversion}
+master-2.mno.example   NotReady,SchedulingDisabled   control-plane,master   {mno-cluster-version1-kubeversion}
+worker-00.mno.example  Ready                         worker,worker-0        {mno-cluster-version1-kubeversion}
+worker-01.mno.example  Ready                         worker,worker-0        {mno-cluster-version1-kubeversion}
+worker-02.mno.example  Ready                         worker,worker-0        {mno-cluster-version1-kubeversion}
+worker-10.mno.example  Ready                         worker,worker-1        {mno-cluster-version1-kubeversion}
+worker-11.mno.example  Ready                         worker,worker-1        {mno-cluster-version1-kubeversion}
+worker-12.mno.example  Ready                         worker,worker-1        {mno-cluster-version1-kubeversion}
+worker-20.mno.example  Ready                         worker,worker-2        {mno-cluster-version1-kubeversion}
+worker-21.mno.example  Ready                         worker,worker-2        {mno-cluster-version1-kubeversion}
+worker-22.mno.example  Ready                         worker,worker-2        {mno-cluster-version1-kubeversion}
 ----
 
 NOTE: Only one master node at a time is `NotReady,SchedulingDisabled`. The MCO upgrades control plane nodes one by one to maintain etcd quorum. All worker nodes remain untouched at this stage.
@@ -266,10 +266,10 @@ oc --kubeconfig ~/hub-kubeconfig get cgu -n ztp-policies
 
 [source,console]
 ----
-NAME             AGE   STATE                  DETAILS
-fast-upgrade-19       73m   Completed              All clusters are compliant with all the managed policies
-fast-upgrade-20       73m   InProgress             Remediating non-compliant policies
-fast-upgrade-finish   73m   IncompleteBlockingCR   Blocking CRs that are not completed: [fast-upgrade-20]
+NAME                  AGE    STATE                  DETAILS
+fast-upgrade-19       129m   Completed              All clusters are compliant with all the managed policies
+fast-upgrade-20       129m   InProgress             Remediating non-compliant policies
+fast-upgrade-finish   129m   IncompleteBlockingCR   Blocking CRs that are not completed: [fast-upgrade-20]
 ----
 
 On the `mno` cluster, observe the second control plane upgrade in progress:
@@ -321,21 +321,26 @@ NAME                   STATUS   ROLES                  VERSION
 master-0.mno.example   Ready    control-plane,master   {mno-cluster-version3-kubeversion}
 master-1.mno.example   Ready    control-plane,master   {mno-cluster-version3-kubeversion}
 master-2.mno.example   Ready    control-plane,master   {mno-cluster-version3-kubeversion}
-worker-00.mno.example  Ready    worker,worker-0        {mno-cluster-version2-kubeversion}
-worker-01.mno.example  Ready    worker,worker-0        {mno-cluster-version2-kubeversion}
-worker-02.mno.example  Ready    worker,worker-0        {mno-cluster-version2-kubeversion}
-worker-10.mno.example  Ready    worker,worker-1        {mno-cluster-version2-kubeversion}
-worker-11.mno.example  Ready    worker,worker-1        {mno-cluster-version2-kubeversion}
-worker-12.mno.example  Ready    worker,worker-1        {mno-cluster-version2-kubeversion}
-worker-20.mno.example  Ready    worker,worker-2        {mno-cluster-version2-kubeversion}
-worker-21.mno.example  Ready    worker,worker-2        {mno-cluster-version2-kubeversion}
-worker-22.mno.example  Ready    worker,worker-2        {mno-cluster-version2-kubeversion}
+worker-00.mno.example  Ready    worker,worker-0        {mno-cluster-version1-kubeversion}
+worker-01.mno.example  Ready    worker,worker-0        {mno-cluster-version1-kubeversion}
+worker-02.mno.example  Ready    worker,worker-0        {mno-cluster-version1-kubeversion}
+worker-10.mno.example  Ready    worker,worker-1        {mno-cluster-version1-kubeversion}
+worker-11.mno.example  Ready    worker,worker-1        {mno-cluster-version1-kubeversion}
+worker-12.mno.example  Ready    worker,worker-1        {mno-cluster-version1-kubeversion}
+worker-20.mno.example  Ready    worker,worker-2        {mno-cluster-version1-kubeversion}
+worker-21.mno.example  Ready    worker,worker-2        {mno-cluster-version1-kubeversion}
+worker-22.mno.example  Ready    worker,worker-2        {mno-cluster-version1-kubeversion}
 ----
 
 [#monitor-stage3]
 == Monitoring Stage 3 — Worker Zone Upgrades
 
 With `fast-upgrade-20` completed, TALM automatically unblocks `fast-upgrade-finish` and begins the sequential, parallel upgrade of the 3 worker zones.
+
+We can see from the RHACM console that the policies related to the upgrade of the worker zones are being remediated one by one. See the progress in the image below:
+
+image::fast-upgrade-upgrade-workers.png[Fast Upgrade Workers In Progress]
+
 
 Confirm `fast-upgrade-finish` is now `InProgress`:
 
@@ -348,9 +353,9 @@ oc --kubeconfig ~/hub-kubeconfig get cgu -n ztp-policies
 [source,console]
 ----
 NAME             AGE    STATE        DETAILS
-fast-upgrade-19       147m   Completed    All clusters are compliant with all the managed policies
-fast-upgrade-20       147m   Completed    All clusters are compliant with all the managed policies
-fast-upgrade-finish   147m   InProgress   Remediating non-compliant policies
+fast-upgrade-19       154m   Completed    All clusters are compliant with all the managed policies
+fast-upgrade-20       154m   Completed    All clusters are compliant with all the managed policies
+fast-upgrade-finish   154m   InProgress   Remediating non-compliant policies
 ----
 
 TALM first enforces `core-upgrade-workers-0`, which sets `paused: false` on the `worker-0` MCP. All 3 nodes in zone 0 drain and reboot in parallel simultaneously. Observe the parallel drain:
@@ -367,15 +372,15 @@ NAME                   STATUS                        ROLES                  VERS
 master-0.mno.example   Ready                         control-plane,master   {mno-cluster-version3-kubeversion}
 master-1.mno.example   Ready                         control-plane,master   {mno-cluster-version3-kubeversion}
 master-2.mno.example   Ready                         control-plane,master   {mno-cluster-version3-kubeversion}
-worker-00.mno.example  Ready,SchedulingDisabled      worker,worker-0        {mno-cluster-version3-kubeversion}
-worker-01.mno.example  Ready,SchedulingDisabled      worker,worker-0        {mno-cluster-version3-kubeversion}
-worker-02.mno.example  Ready,SchedulingDisabled      worker,worker-0        {mno-cluster-version3-kubeversion}
-worker-10.mno.example  Ready                         worker,worker-1        {mno-cluster-version2-kubeversion}
-worker-11.mno.example  Ready                         worker,worker-1        {mno-cluster-version2-kubeversion}
-worker-12.mno.example  Ready                         worker,worker-1        {mno-cluster-version2-kubeversion}
-worker-20.mno.example  Ready                         worker,worker-2        {mno-cluster-version2-kubeversion}
-worker-21.mno.example  Ready                         worker,worker-2        {mno-cluster-version2-kubeversion}
-worker-22.mno.example  Ready                         worker,worker-2        {mno-cluster-version2-kubeversion}
+worker-00.mno.example  Ready,SchedulingDisabled   worker,worker-0        {mno-cluster-version1kubeversion}
+worker-01.mno.example  Ready,SchedulingDisabled   worker,worker-0        {mno-cluster-version1-kubeversion}
+worker-02.mno.example  Ready,SchedulingDisabled   worker,worker-0        {mno-cluster-version1-kubeversion}
+worker-10.mno.example  Ready                         worker,worker-1        {mno-cluster-version1-kubeversion}
+worker-11.mno.example  Ready                         worker,worker-1        {mno-cluster-version1-kubeversion}
+worker-12.mno.example  Ready                         worker,worker-1        {mno-cluster-version1-kubeversion}
+worker-20.mno.example  Ready                         worker,worker-2        {mno-cluster-version1-kubeversion}
+worker-21.mno.example  Ready                         worker,worker-2        {mno-cluster-version1-kubeversion}
+worker-22.mno.example  Ready                         worker,worker-2        {mno-cluster-version1-kubeversion}
 ----
 
 All three nodes of zone 0 are draining simultaneously — this is the key difference from a standard serial upgrade. Check the MCP state:
@@ -400,6 +405,31 @@ NOTE: The pods that were running on zone 0 are rescheduled onto zones 1 and 2. B
 
 Once `worker-0` MCP reports `Updated: True`, TALM marks `core-upgrade-workers-0` as compliant and immediately enforces `core-upgrade-workers-1`, then `core-upgrade-workers-2`. This sequential pattern repeats until all three zones are upgraded.
 
+image::fast-upgrade-upgrade-workers-1.png[Fast Upgrade Workers 1 In Progress]
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+oc --kubeconfig ~/mno-kubeconfig get nodes
+----
+
+[source,bash,subs="attributes+,+macros"]
+----
+NAME                   STATUS                        ROLES                  VERSION
+master-0.mno.example   Ready                         control-plane,master   {mno-cluster-version3-kubeversion}
+master-1.mno.example   Ready                         control-plane,master   {mno-cluster-version3-kubeversion}
+master-2.mno.example   Ready                         control-plane,master   {mno-cluster-version3-kubeversion}
+worker-00.mno.example  Ready                         worker,worker-0        {mno-cluster-version3-kubeversion}
+worker-01.mno.example  Ready                         worker,worker-0        {mno-cluster-version3-kubeversion}
+worker-02.mno.example  Ready                         worker,worker-0        {mno-cluster-version3-kubeversion}
+worker-10.mno.example  Ready,SchedulingDisabled      worker,worker-1        {mno-cluster-version1-kubeversion}
+worker-11.mno.example  Ready,SchedulingDisabled      worker,worker-1        {mno-cluster-version1-kubeversion}
+worker-12.mno.example  Ready,SchedulingDisabled      worker,worker-1        {mno-cluster-version1-kubeversion}
+worker-20.mno.example  Ready                         worker,worker-2        {mno-cluster-version1-kubeversion}
+worker-21.mno.example  Ready                         worker,worker-2        {mno-cluster-version1-kubeversion}
+worker-22.mno.example  Ready                         worker,worker-2        {mno-cluster-version1-kubeversion}
+----
+
 [#monitor-complete]
 == Monitoring Stage 4 — Upgrade Complete
 
@@ -413,10 +443,10 @@ oc --kubeconfig ~/hub-kubeconfig get cgu -n ztp-policies
 
 [source,console]
 ----
-NAME             AGE     STATE       DETAILS
-upgrade-19       6h52m   Completed   All clusters are compliant with all the managed policies
-upgrade-20       6h52m   Completed   All clusters are compliant with all the managed policies
-upgrade-finish   6h52m   Completed   All clusters are compliant with all the managed policies
+NAME                  AGE    STATE       DETAILS
+fast-upgrade-19       171m   Completed   All clusters are compliant with all the managed policies
+fast-upgrade-20       171m   Completed   All clusters are compliant with all the managed policies
+fast-upgrade-finish   170m   Completed   All clusters are compliant with all the managed policies
 ----
 
 Verify that all nodes — both masters and workers — are now running the final target version:
@@ -456,6 +486,34 @@ oc --kubeconfig ~/mno-kubeconfig get clusterversion
 ----
 NAME      VERSION               AVAILABLE   PROGRESSING   SINCE   STATUS
 version   {mno-cluster-version3-cvo}   True        False         5m      Cluster version is {mno-cluster-version3-cvo}
+----
+
+Also confirm the operators running on the cluster are aligned with the target version `{lab-major-version}`:
+
+[.console-input]
+[source,bash,subs="attributes+,+macros"]
+----
+oc --kubeconfig ~/mno-kubeconfig get subscriptions -A -o custom-columns="NAMESPACE:.metadata.namespace,PACKAGE:.spec.name,CHANNEL:.spec.channel"
+----
+
+[source,bash,subs="attributes+,+macros"]
+----
+NAMESPACE                          PACKAGE                       CHANNEL
+metallb-system                     metallb-operator              stable
+openshift-logging                  cluster-logging               stable-6.4
+openshift-nmstate                  kubernetes-nmstate-operator   stable
+openshift-numaresources            numaresources-operator        4.20
+openshift-sriov-network-operator   sriov-network-operator        stable
+openshift-storage                  cephcsi-operator              stable-4.18
+openshift-storage                  mcg-operator                  stable-4.18
+openshift-storage                  ocs-client-operator           stable-4.18
+openshift-storage                  ocs-operator                  stable-4.18
+openshift-storage                  odf-csi-addons-operator       stable-4.18
+openshift-storage                  odf-dependencies              stable-4.18
+openshift-storage                  odf-operator                  stable-4.20
+openshift-storage                  odf-prometheus-operator       stable-4.18
+openshift-storage                  recipe                        stable-4.18
+openshift-storage                  rook-ceph-operator            stable-4.18
 ----
 
 The EUS-to-EUS upgrade from `{lab-minor-version}` to `{lab-major-version}` is complete. Each of the 9 worker nodes rebooted exactly once, the three worker zones were upgraded sequentially in parallel, and the entire process was executed without any manual intervention after the initial CGU application.

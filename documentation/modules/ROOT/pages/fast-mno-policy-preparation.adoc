@@ -594,7 +594,7 @@ The following policies are created to manage the upgrade from version {lab-mid-v
 [#policy-core-upgrade-prep-20]
 === Policy: core-upgrade-prep-20
 
-This is the preparation policy. It readies the spoke cluster for the control plane upgrade. This is exactly the same policy as xref:fast-mno-upgrades-handson.adoc#policy-core-upgrade-prep-19[Policy: core-upgrade-prep-19] adapted for the {lab-mid-version} upgrade.
+This is the preparation policy. It readies the spoke cluster for the control plane upgrade. This is exactly the same policy as xref:fast-mno-policy-preparation.adoc#policy-core-upgrade-prep-19[Policy: core-upgrade-prep-19] adapted for the {lab-mid-version} upgrade.
 
 [source,yaml,subs="attributes+,+macros"]
 ----
@@ -641,7 +641,7 @@ policies:
 [policy-core-upgrade-ocp-20]
 === Policy: core-upgrade-ocp-20
 
-This is the main upgrade policy. Its sole purpose is to target the ClusterVersion resource on the spoke cluster and instruct it to begin the upgrade to {mno-cluster-version3-cvo}. More information was detailed in the xref:fast-mno-upgrades-handson.adoc#policy-ocp-19[Policy: core-upgrade-ocp-19] section.
+This is the main upgrade policy. Its sole purpose is to target the ClusterVersion resource on the spoke cluster and instruct it to begin the upgrade to {mno-cluster-version3-cvo}. More information was detailed in the xref:fast-mno-policy-preparation.adoc#policy-core-upgrade-ocp-19[Policy: core-upgrade-ocp-19] section.
 
 [source,yaml,subs="attributes+,+macros"]
 ----
@@ -1060,7 +1060,7 @@ Let's add the labels to the cluster and verify that the policies are now targeti
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 ----
-oc --kubeconfig ~/hub-kubeconfig label cluster mno upgrade-fast-418-420=""
+oc --kubeconfig ~/hub-kubeconfig label managedcluster mno upgrade-fast-418-420=""
 ----
 
 Notice that all the policies are now targeting the cluster.
