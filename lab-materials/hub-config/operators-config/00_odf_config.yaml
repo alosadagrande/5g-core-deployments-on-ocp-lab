@@ -27,6 +27,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
+  enableCephTools: true
   network:
     ipFamily: IPv4
   hostNetwork: true
