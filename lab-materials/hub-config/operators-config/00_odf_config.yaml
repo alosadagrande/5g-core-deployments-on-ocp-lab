@@ -63,13 +63,53 @@ spec:
       requests:
         cpu: "1m"
         memory: 1Mi
+    crashcollector:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    logcollector:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    exporter:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    mgr-sidecar:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    ocs-metrics-exporter:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    odf-blackbox-exporter:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    kube-rbac-proxy-main:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    kube-rbac-proxy-self:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    ocs-provider-server:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
+    rook-ceph-tools:
+      requests:
+        cpu: "1m"
+        memory: 1Mi
     noobaa-db:
       requests:
         cpu: "1m"
         memory: 1Mi
     noobaa-db-vol:
       requests:
-        storage: 50Gi
+        storage: 5Gi
     noobaa-endpoint:
       requests:
         cpu: "1m"
