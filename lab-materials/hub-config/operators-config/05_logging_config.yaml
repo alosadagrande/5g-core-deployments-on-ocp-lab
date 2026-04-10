@@ -76,7 +76,7 @@ spec:
     secret:
       name: logging-loki-s3
       type: s3
-  storageClassName: odf-storagecluster-ceph-rbd
+  storageClassName: ocs-storagecluster-ceph-rbd
   tenants:
     authentication:
     - mTLS:
