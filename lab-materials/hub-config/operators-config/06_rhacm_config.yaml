@@ -82,6 +82,12 @@ spec:
     metricObjectStorage:
       name: thanos-object-storage
       key: thanos.yaml
+    alertmanagerStorageSize: 1Gi
+    compactStorageSize: 10Gi
+    receiveStorageSize: 10Gi
+    storageClass: ocs-storagecluster-ceph-rbd
+    ruleStorageSize: 100Mi
+    storeStorageSize: 1Gi
 ---
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
