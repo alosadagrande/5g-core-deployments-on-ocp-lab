@@ -52,32 +52,75 @@ metadata:
   name: observability
 spec:
   instanceSize: minimal
-  observabilityAddonSpec: {}
+  observabilityAddonSpec:
+    resources:
+      requests:
+        memory: 1Mi
   advanced:
     alertmanager:
       replicas: 1
-    grafana: 
+      resources:
+        requests:
+          memory: 1Mi
+    grafana:
       replicas: 1
+      resources:
+        requests:
+          memory: 1Mi
     observatoriumAPI:
       replicas: 1
+      resources:
+        requests:
+          memory: 1Mi
     rbacQueryProxy:
       replicas: 1
+      resources:
+        requests:
+          memory: 1Mi
     storeMemcached:
       replicas: 1
+      resources:
+        requests:
+          memory: 1Mi
     queryFrontendMemcached:
       replicas: 1
+      resources:
+        requests:
+          memory: 1Mi
     queryFrontend:
       replicas: 1
+      resources:
+        requests:
+          memory: 1Mi
     query:
       replicas: 1
+      resources:
+        requests:
+          memory: 1Mi
     receive:
       replicas: 1
+      resources:
+        requests:
+          memory: 1Mi
     rule:
       replicas: 1
+      resources:
+        requests:
+          memory: 1Mi
     store:
       replicas: 1
+      resources:
+        requests:
+          memory: 1Mi
     multiClusterObservabilityAddon:
       replicas: 1
+      resources:
+        requests:
+          memory: 1Mi
+    compact:
+      resources:
+        requests:
+          memory: 1Mi
   storageConfig:
     metricObjectStorage:
       name: thanos-object-storage
