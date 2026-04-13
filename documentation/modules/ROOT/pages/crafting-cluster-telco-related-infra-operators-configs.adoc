@@ -150,8 +150,11 @@ policies:
     - path: source-crs/reference-crs/required/scheduling/nrop.yaml
     - path: source-crs/reference-crs/required/scheduling/sched.yaml
     # Storage operator
-    #- path: source-crs/reference-crs/required/storage/odf-external/01-rook-ceph-external-cluster-details.secret.yaml
-    #- path: source-crs/reference-crs/required/storage/odf-external/02-ocs-external-storagecluster.yaml
+    - path: source-crs/reference-crs/required/storage/odf-external/01-rook-ceph-external-cluster-details.secret.yaml
+      patches:
+        - data:
+            external_cluster_details: $(cat ~/external-ceph-config.json | base64 -w 0)
+    - path: source-crs/reference-crs/required/storage/odf-external/02-ocs-external-storagecluster.yaml
     # Cluster Logging
     - path: source-crs/reference-crs/optional/logging/ClusterLogServiceAccount.yaml
     - path: source-crs/reference-crs/optional/logging/ClusterLogServiceAccountAuditBinding.yaml
