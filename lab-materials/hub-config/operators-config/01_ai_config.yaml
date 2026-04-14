@@ -108,6 +108,14 @@ data:
 
     [[registry]]
     prefix = ""
+    location = "registry.redhat.io/rhel9"
+    mirror-by-digest-only = true
+
+    [[registry.mirror]]
+      location = "infra.5g-deployment.lab:8443/rhel9"
+
+    [[registry]]
+    prefix = ""
     location = "registry.redhat.io/rh-sso-7"
     mirror-by-digest-only = true
 
