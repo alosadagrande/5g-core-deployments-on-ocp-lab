@@ -978,18 +978,6 @@ spec:
       node-role.kubernetes.io/worker-2: ""
   paused: false
 EOF
-cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/install-manifests/${release}/custom-manifests/node-resource-topology-patch-itms.yaml
-apiVersion: config.openshift.io/v1
-kind: ImageTagMirrorSet
-metadata:
-  name: noderesourcetopology-scheduler-rhel9
-spec:
-  imageTagMirrors:
-  - source: registry.redhat.io/openshift4/noderesourcetopology-scheduler-rhel9
-    mirrorSourcePolicy: AllowContactingSource
-    mirrors:
-    - infra.5g-deployment.lab:8443/openshift4/noderesourcetopology-scheduler-rhel9
-EOF
 done
 -----
 
@@ -1039,7 +1027,6 @@ configMapGenerator:
     namespace: mno
   - files:
     - install-manifests/{lab-minor-version}/custom-manifests/fast-upgrades-mcps.yaml
-    - install-manifests/{lab-minor-version}/custom-manifests/node-resource-topology-patch-itms.yaml
     name: {core-rds-version-custom-manifests}
     namespace: mno
 generatorOptions:
