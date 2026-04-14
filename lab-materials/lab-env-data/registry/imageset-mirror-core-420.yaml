@@ -54,42 +54,55 @@ mirror:
     - name: cephcsi-operator
       channels:
       - name: stable-4.20
+      - name: stable-4.19
     - name: mcg-operator
       channels:
       - name: stable-4.20
+      - name: stable-4.19
     - name: mcg-operator
       channels:
       - name: stable-4.20
+      - name: stable-4.19
     - name: numaresources-operator
       channels:
       - name: "4.20"
     - name: ocs-client-operator
       channels:
       - name: stable-4.20
+      - name: stable-4.19
     - name: ocs-operator
       channels:
       - name: stable-4.20
+      - name: stable-4.19
     - name: odf-csi-addons-operator
       channels:
       - name: stable-4.20
+      - name: stable-4.19
     - name: odf-dependencies
       channels:
       - name: stable-4.20
+      - name: stable-4.19
     - name: odf-operator
       channels:
       - name: stable-4.20
+      - name: stable-4.19
     - name: odf-prometheus-operator
       channels:
       - name: stable-4.20
+      - name: stable-4.19
     - name: recipe
       channels:
       - name: stable-4.20
+      - name: stable-4.19
     - name: rook-ceph-operator
       channels:
       - name: stable-4.20
+      - name: stable-4.19
     - name: ceph-csi-operator
       channels:
       - name: stable-4.20
+      - name: stable-4.19
     - name: odf-external-snapshotter-operator
       channels:
       - name: stable-4.20
+      - name: stable-4.19
