@@ -306,7 +306,8 @@ To obtain the correct `image` digest for your mirror registry, run:
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 ----
-oc adm release info {mno-cluster-version2} | grep 'Pull From: ' | cut -d '@' -f1
+podman login infra.5g-deployment.lab:8443 -u admin -p r3dh4t1! --tls-verify=false --authfile ~/.docker/config.json
+oc adm release info --registry-config ~/.docker/config.json {mno-cluster-version2-cvo} | grep 'Pull From: '
 ----
 
 Replace the `image` value below with the output of that command.
@@ -351,7 +352,7 @@ The following subscriptions are created to manage the upgrade from version {open
             annotations:
               noop-for-triggering-noncompliance: "19"
         - spec:
-            channel: stable-6.3
+            channel: stable-6.4
             installPlanApproval: Automatic
             name: cluster-logging
             source: redhat-operators-disconnected
@@ -517,7 +518,7 @@ policies:
             annotations:
               noop-for-triggering-noncompliance: "19"
         - spec:
-            channel: stable-6.3
+            channel: stable-6.4
             installPlanApproval: Automatic
             name: cluster-logging
             source: redhat-operators-disconnected
@@ -681,7 +682,7 @@ This is the operator lifecycle policy. After the control plane upgrades, this po
             annotations:
               noop-for-triggering-noncompliance: "20"
         - spec:
-            channel: stable-6.3
+            channel: stable-6.4
             installPlanApproval: Automatic
             name: cluster-logging
             source: redhat-operators-disconnected
@@ -843,7 +844,7 @@ policies:
             annotations:
               noop-for-triggering-noncompliance: "20"
         - spec:
-            channel: stable-6.3
+            channel: stable-6.4
             installPlanApproval: Automatic
             name: cluster-logging
             source: redhat-operators-disconnected
