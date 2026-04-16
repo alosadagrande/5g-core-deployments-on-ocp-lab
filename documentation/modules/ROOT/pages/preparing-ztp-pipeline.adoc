@@ -2,7 +2,7 @@
 include::_attributes.adoc[]
 :profile: 5g-ran-lab
 
-In RAN environments we will be managing thousands of Single Node OpenShift (SNO) instances, and as such, a scalable and manageable way of defining our infrastructure is required.
+In Core environments we will be managing hundreds of OpenShift Clusters, and as such, a scalable and manageable way of defining our infrastructure is required.
 
 By describing our infrastructure as code (IaC) the Git repository holds declarative state of the fleet. 
 
@@ -11,9 +11,9 @@ By describing our infrastructure as code (IaC) the Git repository holds declarat
 
 The `ClusterInstance` is an abstraction layer on top of the different components managed by the link:ztp-at-scale.html#siteconfig[SiteConfig Operator], responsible for deploying OpenShift clusters using either the {ai-workflow}[Agent Based Installation] or {ibi-docs}[Image Based Installation] flow. For the ones familiar with the {ai-workflow}[Agent Based Installation] and particularly with the `Assisted Service`, you will know that in order to deploy a cluster using this service there are several Kubernetes objects that need to be created like: `ClusterDeployment`, `InfraEnv`, `AgentClusterInstall`, etc.
 
-The ClusterInstance is fundamental for scaling the management of SNO fleets, as it abstracts the complexity of multiple Kubernetes objects into a unified and simplified definition for cluster deployment. It simplifies this process by providing a unified structure to describe the cluster deployment configuration in a single place. In this {example-sno-clusterinstance-link}[link] you can find an example of a ClusterInstance for a SNO deployment.
+The ClusterInstance is fundamental for scaling the management of OpenShift Cluster fleets, as it abstracts the complexity of multiple Kubernetes objects into a unified and simplified definition for cluster deployment. It simplifies this process by providing a unified structure to describe the cluster deployment configuration in a single place. In this {example-mno-clusterinstance-link}[link] you can find an example of a ClusterInstance for a standard OpenShift deployment.
 
-In the comming sections, we will create our own ClusterInstances using the {ibi-docs}[Image Based Installation] and {ai-workflow}[Agent Based Installation] flows to deploy a couple of SNO clusters in our lab environment.
+In the comming sections, we will create our own ClusterInstances using the {ai-workflow}[Agent Based Installation] flow to deploy a standard OpenShift Cluster in our environment.
 
 IMPORTANT: The steps below rely on the lab environment being up and running.
 
@@ -95,7 +95,7 @@ ifeval::["{demo_environment}" != "true"]
 WARNING: If it is the first time that you are using `git` in your machine, a message requiring you to setup a Git Username and Email may be shown.
 endif::[]
 
-IMPORTANT: The cluster name for the SNO that we will be deploying using the agent-based install will be **sno-abi**. On the other hand, **sno-ibi** is the name of the cluster that we will deploy using the image-based install flow. That's why those folder exists in the repository structure that we are creating.
+IMPORTANT: The cluster name for the OpenShift standard cluster that we will be deploying using the agent-based install will be **mno-cluster**. That's why this folder exists in the repository structure that we are creating.
 
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
@@ -194,9 +194,8 @@ oc --kubeconfig ~/hub-kubeconfig apply -k ~/5g-deployment-lab/ztp-pipeline/argoc
 +
 At this stage, we have our ZTP GitOps pipeline running and waiting for committing declarative Infrastructure and Configuration as Code to the `ztp-repository` Git repository.
 
-* **clusters**. It is responsible for the infrastructure and physical deployment of Single Node OpenShift clusters from the Git repository.
-* **policies**. It focuses on the logical and operational configuration of those clusters by applying the {rds-config}[Telco RAN DU reference configuration] via RHACM policies.
-
+* **clusters**. It is responsible for the infrastructure and physical deployment of OpenShift clusters from the Git repository.
+* **policies**. It focuses on the logical and operational configuration of those clusters by applying the {rds-config}[Telco Core reference configuration] via RHACM policies.
 
 To confirm that the Argo CD applications for clusters and policies are present and healthy, access the Argo CD instance on the lab at {argocd-hub-link} and login in with the OpenShift admin credentials. You can also access through the pre-configured Firefox image:bookmark-argocd.png[ArgoCD bookmark icon] bookmark. Another option is running:
 

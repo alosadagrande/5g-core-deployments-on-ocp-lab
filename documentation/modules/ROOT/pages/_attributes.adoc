@@ -11,8 +11,10 @@ code:experimental:
 :openshift-intermediate-release: v4.19
 :openshift-final-release: v4.20
 :openshift-next-release: v4.21
-:rds-link: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/telco-ran-du-ref-design-specs#telco-ref-design-overview_telco-ran-du
-:rds-config: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/telco-ran-du-ref-design-specs#telco-ran-du-reference-configuration-crs
+:mno-initial-imageset: ocp-v4.18.33-disconnected
+:mno-initial-imageset-file: ocp-418-33-imageset.yaml
+:rds-link: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/telco-core-ref-design-specs#telco-core-rds-product-version-use-model-overview_telco-core
+:rds-config: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/telco-core-ref-design-specs#telco-core-reference-configuration-crs
 :rds-components: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/telco-ran-du-ref-design-specs#telco-ran-du-reference-design-components_telco-ran-du
 :core-rds-version-manifests: core-rds-418-manifests
 :core-rds-version-custom-manifests: core-418-custom-manifests
@@ -33,7 +35,7 @@ code:experimental:
 :ztp-core-reference-ocp-release-disconnected-image: infra.5g-deployment.lab:8443/openshift4/openshift-telco-core-rds-rhel9:v4.18.5-5
 :ztp-core-reference-ocp-intermediate-release-disconnected-image: infra.5g-deployment.lab:8443/openshift4/openshift-telco-core-rds-rhel9:v4.19.3-1
 :ztp-core-reference-ocp-next-release-disconnected-image: infra.5g-deployment.lab:8443/openshift4/openshift-telco-core-rds-rhel9:v4.20.1-3
-:example-sno-clusterinstance-link: https://github.com/stolostron/siteconfig/blob/release-2.15/config/samples/siteconfig_v1alpha1_clusterinstance.yaml
+:example-mno-clusterinstance-link: https://github.com/stolostron/siteconfig/blob/release-2.15/config/samples/assisted-installer/example-standard.yaml
 :example-groupdu-policygen-link: https://github.com/openshift-kni/cnf-features-deploy/blob/release-4.20/ztp/gitops-subscriptions/argocd/example/policygentemplates/group-du-standard-ranGen.yaml
 :reference-documentation: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/ztp-vdu-configuration-reference#ztp-du-firmware-config-reference_vdu-config-ref
 // demo_environment controls some texts that are shown only when running/not running on demo.redhat.com

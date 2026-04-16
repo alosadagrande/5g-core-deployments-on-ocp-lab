@@ -2,11 +2,11 @@
 include::_attributes.adoc[]
 :profile: 5g-core-lab
 
-In the previous section, the link:preparing-ztp-pipeline.html[ZTP GitOps pipeline] was put in place to deploy our Infrastructure as Code (IaC) and Configuration as Code (CaC). Here, we are going to focus on creating the Configuration as Code (CaC) for the OpenShift clusters that will be installed in the following sections. The configuration of the Telco RAN Reference Design Specification is applied using multiple `PolicyGenerator` objects.
+In the previous section, the link:preparing-ztp-pipeline.html[ZTP GitOps pipeline] was put in place to deploy our Infrastructure as Code (IaC) and Configuration as Code (CaC). Here, we are going to focus on creating the Configuration as Code (CaC) for the OpenShift cluster that will be installed in the following sections. The configuration of the Telco Core Reference Design Specification is applied using multiple `PolicyGenerator` objects.
 
 The PolicyGenerator object is the cornerstone for defining Configuration as Code (CaC) within this ZTP pipeline, enabling scalable and consistent configuration of OpenShift clusters. We described how `PolicyGenerator` works in detail xref:policygen-deepdive.adoc#policies-templating[here], so let's jump directly to the creation of the different policies.
 
-NOTE: The configuration defined through these PolicyGenerator CRs is only a subset of what was described in xref:telco-related-infra-operators-intro.adoc[Introduction to Telco Related Infrastructure Operators]. This is for clarity and tailored to the lab environment. A full production environment for supporting telco 5G vRAN workloads would have additional configuration not included here, but described in detail as the {rds-link}[{openshift-release} Telco RAN Reference Design Specification] in the official documentation.
+NOTE: The configuration defined through these PolicyGenerator CRs is only a subset of what was described in xref:telco-related-infra-operators-intro.adoc[Introduction to Telco Related Infrastructure Operators]. This is for clarity and tailored to the lab environment. A full production environment for supporting telco 5G Core workloads would have additional configuration not included here, but described in detail as the {rds-link}[{openshift-release} Telco Core Reference Design Specification] in the official documentation.
 
 IMPORTANT: Below commands must be executed from the infrastructure host if not specified otherwise.
 
@@ -19,7 +19,7 @@ These configs may vary from release to release, that's why we create a `{policyg
 
 IMPORTANT: The PolicyGenerator object utilizes binding rules defined by labels (e.g., common: "ocp419" and logicalGroup: "active") that are pre-set within the ClusterInstance definition, ensuring that these common configurations are automatically applied to the designated clusters across your fleet.
 
-1. Create the `common` PolicyGenerator for {openshift-release} SNOs:
+1. Create the `common` PolicyGenerator for {openshift-release} OpenShift Cluster:
 +
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
@@ -462,7 +462,7 @@ spec:
   clusterSet: global
 EOF
 -----
-2. Create the required Kustomization files
+3. Create the required Kustomization files
 +
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
@@ -520,7 +520,7 @@ resources:
 EOF
 -----
 +
-3. At this point, we can commit and push the changes to the Git repo:
+4. At this point, we can commit and push the changes to the Git repo:
 +
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
@@ -533,7 +533,7 @@ cd ~
 -----
 
 [#deploying-policies-using-gitops-pipeline]
-== Deploying the Telco 5G RAN RDS using the ZTP GitOps Pipeline
+== Deploying the Telco 5G Core RDS using the ZTP GitOps Pipeline
 
 Once the changes are commited to the Git repository, ArgoCD will synchronize the new resources and automatically apply them to the hub cluster. Argo CD functions as the automation engine that translates the Configuration as Code from Git into active policies on the hub cluster.
 
@@ -551,6 +551,6 @@ WARNING: It may take up to 5 minutes for the policies to show up, this is due to
 
 This entire process, from defining policies in Git to their automatic application and monitoring, embodies the Zero Touch Provisioning (ZTP) philosophy, enabling large-scale, automated deployments.
 
-IMPORTANT: The Telco 5G RAN RDS policies are ready but they are not being applied or compared to any cluster yet. That's because we did not provision any SNO cluster. Let's fix that by moving to the next section and deploying the first one.
+IMPORTANT: The Telco 5G Core RDS policies are ready but they are not being applied or compared to any cluster yet. That's because we did not provision any OpenShift cluster. Let's fix that by moving to the next section and deploying one.
 
 image::crafting-rds-acm.png[ArgoCD Policies App]
