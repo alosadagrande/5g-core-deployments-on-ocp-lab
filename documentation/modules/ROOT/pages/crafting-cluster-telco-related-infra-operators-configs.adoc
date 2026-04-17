@@ -447,7 +447,7 @@ EOF
 -----
 +
 2. A managedclusterbinding is required
-
++
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 -----
@@ -462,6 +462,7 @@ spec:
   clusterSet: global
 EOF
 -----
++
 3. Create the required Kustomization files
 +
 [.console-input]

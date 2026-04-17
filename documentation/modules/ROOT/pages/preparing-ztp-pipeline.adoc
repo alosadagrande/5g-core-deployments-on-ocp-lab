@@ -53,40 +53,40 @@ As we saw in link:deployment-considerations.html#git-repo-structure[Git Reposito
 -----
 ├── site-configs
 │   ├── hub-1
-|   |   └── extra-manifest
+│   │   └── extra-manifest
 │   ├── install-manifests
-|   |   ├── {lab-minor-version}
-|   |   |   └── extra-manifests
-|   |   |   └── custom-manifests
-|   |   ├── {openshift-intermediate-release}
-|   |   |   └── extra-manifests
-|   |   |   └── custom-manifests
-|   |   ├── {openshift-final-release}
-|   |   |   └── extra-manifests
-|   |   |   └── custom-manifests
-│   └── pre-reqs
-|   |   └── mno-cluster
+│   │   ├── {lab-minor-version}
+│   │   │   ├── custom-manifests
+│   │   │   └── extra-manifests
+│   │   ├── {openshift-intermediate-release}
+│   │   │   ├── custom-manifests
+│   │   │   └── extra-manifests
+│   │   └── {openshift-final-release}
+│   │       ├── custom-manifests
+│   │       └── extra-manifests
+│   ├── pre-reqs
+│   │   └── mno-cluster
 │   └── resources
 └── site-policies
-    ├── fleet
-    │   ├── active    
-    |   │   └── {openshift-release}
-    |   |   │   └── source-crs
-    |   |   |   |   └── reference-crs
-    |   |   |   |   └── custom-crs
-    |   │   └── {openshift-intermediate-release}
-    |   |   │   └── source-crs
-    |   |   |   |   └── reference-crs
-    |   |   |   |   └── custom-crs
-    |   │   └── {openshift-final-release}
-    |   |   │   └── source-crs
-    |   |   |   |   └── reference-crs
-    |   |   |   |   └── custom-crs
-    │   └── testing
-    |   |   │   └── {openshift-next-release}
-    |   |   |   │   └── source-crs
-    |   |   |   |   |   └── reference-crs
-    |   |   |   |   |   └── custom-crs
+    └── fleet
+        ├── active
+        │   ├── v{lab-minor-version}
+        │   │   └── source-crs
+        │   │       ├── custom-crs
+        │   │       └── reference-crs
+        │   ├── v{openshift-intermediate-release}
+        │   │   └── source-crs
+        │   │       ├── custom-crs
+        │   │       └── reference-crs
+        │   └── v{openshift-final-release}
+        │       └── source-crs
+        │           ├── custom-crs
+        │           └── reference-crs
+        └── testing
+            └── v{lab-minor-version}
+                └── source-crs
+                    ├── custom-crs
+                    └── reference-crs
 -----
 
 Let's replicate it:

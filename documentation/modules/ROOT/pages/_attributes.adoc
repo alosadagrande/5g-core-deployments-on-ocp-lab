@@ -43,9 +43,9 @@ code:experimental:
 :hub_admin_password: admin_password_here
 :hub-cluster-ocp-version: v4.20.8
 :hub-cluster-kubeversion: v1.33.6
-:mno-cluster-version1: v4.18.33
-:mno-cluster-version2: v4.19.24
-:mno-cluster-version3: v4.20.8
+:mno-cluster-version1: 4.18.33
+:mno-cluster-version2: 4.19.24
+:mno-cluster-version3: 4.20.8
 :mno-cluster-version1-kubeversion: v1.31.14
 :mno-cluster-version2-kubeversion: v1.32.10
 :mno-cluster-version3-kubeversion: v1.33.6
@@ -60,6 +60,21 @@ code:experimental:
 :talm-update-image: infra.5g-deployment.lab:8443/rhsysdeseng/lab5gran:v4.20.8
 //:talm-update-image:  infra.5g-deployment.lab:8443/openshift/release-images@sha256:bada2d7626c8652e0fb68d3237195cb37f425e960347fbdd747beb17f671cf13
 :talm-update-policy-name: version-420-1
+// Fast MNO Upgrade
+:version-suffix-minor: 18
+:version-suffix-mid: 19
+:version-suffix-major: 20
+:fast-upgrade-rds-image-tag-intermediate: v4.19.4-4
+:fast-upgrade-rds-image-tag-final: v4.20.2-3
+:fast-upgrade-ocp-intermediate-image-digest: sha256:3ef832b8bb0d56331035ba54af36c36be46d6c6dc1a41e300055692f02bb001d
+:fast-upgrade-ocp-final-image-digest: sha256:91606a5f04331ed3293f71034d4f480e38645560534805fe5a821e6b64a3f203
+:odf-channel-intermediate: stable-4.19
+:odf-channel-final: stable-4.20
+:nrop-channel-intermediate: 4.19
+:nrop-channel-final: 4.20
+:fast-upgrade-label: upgrade-fast-418-420
+:upgrading-to-mid-label: upgrading-to-419
+:upgrading-to-major-label: upgrading-to-420
 :rhacm-version: v2.15
 :multicluster-policygenerator-version: v2.15.1-1
 :rhacm-template-processing: https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.15/html/governance/governance#template-processing
