@@ -1057,7 +1057,7 @@ WARNING: It may take up to 5 minutes for Argo CD to start syncing changes.
 2. When accessing choose `Logging with OpenShift`. On the next screen use the OpenShift Console Admin credentials.
 3. From all these apps, click on `clusters` we will see something similar to the following screen:
 +
-image::argocd-clusters-app-sno-abi.png[ArgoCD Clusters App]
+image::argocd-clusters-app-mno-abi.png[ArgoCD Clusters App]
 
 [#monitoring-deployment]
 == Monitoring the Deployment
@@ -1070,7 +1070,7 @@ Once the ZTP GitOps Pipeline starts deploying our clusters we can follow the ins
 WARNING: It may take a while for the installation to start. Wait at least 10 minutes if you see the message `The cluster is not ready for installation` or if the `MNO` cluster appears as `draft`.
 
 1. Access the https://console-openshift-console.apps.hub.5g-deployment.lab/multicloud/home/welcome[RHACM WebUI] and log in using your OpenShift credentials.
-2. In the top-left corner, click on `local-cluster` and select `All Clusters` to enter the RHACM Console.
+2. In the top-left corner, click on `Fleet Management`.
 3. Navigate to `Infrastructure` -> `Clusters`. If the deployment has not yet started, you will see a screen similar to this:
 +
 image::acm-clusterview-draft.png[RHACM Cluster View Draft]
@@ -1081,17 +1081,17 @@ image::acm-clusterview.png[RHACM Cluster View]
 +
 5. To check the deployment status of the `mno` cluster, click on `mno`. You will see a screen like this:
 +
-image::acm-sno-abi-view.png[RHACM mno Cluster View]
+image::acm-mno-abi-view.png[RHACM mno Cluster View]
 +
 6. You can track progress here. For additional details, click on `View Cluster Events`, where you will see more information:
 +
-image::acm-sno-abi-clusterevents.png[RHACM mno Cluster Events]
+image::acm-mno-abi-clusterevents.png[RHACM mno Cluster Events]
 +
 7. The deployment will eventually complete:
 +
-IMPORTANT: The installation of the `MNO` cluster takes approximately 2 hours to complete.
+IMPORTANT: The installation of the `MNO` cluster takes approximately 1 hour 30 minutes to complete.
 +
-image::acm-sno-abi-install-completed.png[RHACM mno Cluster Deployment Finished]
+image::acm-mno-abi-install-completed.png[RHACM mno Cluster Deployment Finished]
 
 [#monitoring-deployment-cli]
 == Monitoring the Deployment via the CLI
@@ -1147,4 +1147,4 @@ oc --kubeconfig ~/hub-kubeconfig -n mno get agentclusterinstall mno -o yaml
   type: Completed
 -----
 
-IMPORTANT: The installation of the `mno` cluster takes approximately 2 hours to complete.
+IMPORTANT: The installation of the `mno` cluster takes approximately 1 hour 30 minutes to complete.

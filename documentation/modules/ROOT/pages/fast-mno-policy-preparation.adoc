@@ -32,11 +32,11 @@ Verify that the `mno` cluster is attached and available:
 oc --kubeconfig ~/hub-kubeconfig get managedclusters
 ----
 
-[source,console]
+[source,console,subs="attributes+"]
 ----
-NAME            HUB ACCEPTED   MANAGED CLUSTER URLS                                  JOINED   AVAILABLE   AGE
-local-cluster   true           https://api.hub.example.com:6443                      True     True        10d
-mno             true           https://api.mno.example.com:6443                      True     True        5d
+NAME            HUB ACCEPTED   MANAGED CLUSTER URLS                     JOINED   AVAILABLE   AGE
+local-cluster   true           https://api.hub.5g-deployment.lab:6443   True     True         2h
+mno             true           https://api.mno.5g-deployment.lab:6443   True     True        57m
 ----
 
 Confirm that TALM is running on the Hub:
@@ -44,12 +44,13 @@ Confirm that TALM is running on the Hub:
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 ----
-oc --kubeconfig ~/hub-kubeconfig get pods -n openshift-operators | grep cluster-group
+oc --kubeconfig ~/hub-kubeconfig get pods -n openshift-operators -l app.kubernetes.io/component=talm
 ----
 
-[source,console]
+[source,console,subs="attributes+"]
 ----
-cluster-group-upgrades-controller-manager-v2-5df6886875-cvwj4   1/1     Running   0   5d
+NAME                                                            READY   STATUS    RESTARTS      AGE
+cluster-group-upgrades-controller-manager-v2-7c5d456f65-w84cb   1/1     Running   3 (1h ago)    1h
 ----
 
 Now extract the kubeconfig for the `mno` spoke cluster so you can run commands against it directly:
@@ -60,7 +61,7 @@ Now extract the kubeconfig for the `mno` spoke cluster so you can run commands a
 oc --kubeconfig ~/hub-kubeconfig -n mno extract secret/mno-admin-kubeconfig --to=- > ~/mno-kubeconfig
 ----
 
-Verify the current OCP version of the `mno` cluster. It should be at `{mno-cluster-version1}`:
+Verify the current OCP version of the `mno` cluster. It should be at `v{mno-cluster-version1}`:
 
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
@@ -70,8 +71,10 @@ oc --kubeconfig ~/mno-kubeconfig get clusterversion
 
 [source,console,subs="attributes+,+macros"]
 ----
+NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
+version   {mno-cluster-version1}   True        False         21m     Cluster version is {mno-cluster-version1}
 NAME      VERSION       AVAILABLE   PROGRESSING   SINCE   STATUS
-version   {mno-cluster-version1}   True        False         2d      Cluster version is {mno-cluster-version1}
+version   {mno-cluster-version1}   True        False         1h      Cluster version is {mno-cluster-version1}
 ----
 
 Verify that the 3 custom worker MCPs exist, the default `worker` pool is empty, and all MCPs are currently paused:
@@ -129,7 +132,7 @@ In the ZTP GitOps workflow, ACM policies are not written by hand as raw Policy Y
 ----
 podman login infra.5g-deployment.lab:8443 -u admin -p r3dh4t1! --tls-verify=false
 mkdir -p ~/5g-deployment-lab/ztp-repository/site-policies/fleet/active/{openshift-intermediate-release}/source-crs/reference-crs/
-TEMP_ID=$(podman create infra.5g-deployment.lab:8443/openshift4/openshift-telco-core-rds-rhel9:v4.19.4-4)
+TEMP_ID=$(podman create infra.5g-deployment.lab:8443/openshift4/openshift-telco-core-rds-rhel9:{fast-upgrade-rds-image-tag-intermediate})
 podman cp $TEMP_ID:/usr/share/telco-core-rds/configuration/reference-crs/. ~/5g-deployment-lab/ztp-repository/site-policies/fleet/active/{openshift-intermediate-release}/source-crs/reference-crs/
 podman rm $TEMP_ID
 ----
@@ -139,27 +142,27 @@ podman rm $TEMP_ID
 ----
 podman login infra.5g-deployment.lab:8443 -u admin -p r3dh4t1! --tls-verify=false
 mkdir -p ~/5g-deployment-lab/ztp-repository/site-policies/fleet/active/{openshift-final-release}/source-crs/reference-crs/
-TEMP_ID=$(podman create infra.5g-deployment.lab:8443/openshift4/openshift-telco-core-rds-rhel9:v4.20.2-3)
+TEMP_ID=$(podman create infra.5g-deployment.lab:8443/openshift4/openshift-telco-core-rds-rhel9:{fast-upgrade-rds-image-tag-final})
 podman cp $TEMP_ID:/usr/share/telco-core-rds/configuration/reference-crs/. ~/5g-deployment-lab/ztp-repository/site-policies/fleet/active/{openshift-final-release}/source-crs/reference-crs/
 podman rm $TEMP_ID
 ----
 
-The final layout for the reference CRs for the 4.19 and 4.20 releases will be:
+The final layout for the reference CRs for the {lab-mid-version} and {lab-major-version} releases will be:
 
-[source,text]
-$ site-policies/fleet/active/
-├── v4.18
+[source,text,subs="attributes+"]
+site-policies/fleet/active/
+├── {openshift-release}
 │└── source-crs
 │  ├── custom-crs
 │    └── reference-crs
 │        ├── optional
 │        └── required
-├── v4.19
+├── {openshift-intermediate-release}
 │└── source-crs
 │    └── reference-crs
 │        ├── optional
 │        └── required
-└── v4.20
+└── {openshift-final-release}
 |    └── source-crs
 │    └── reference-crs
 │        ├── optional
@@ -223,7 +226,7 @@ spec:
 EOF
 ----
 
-Now that we have the custom manifest for our MCP workers, we can create the policies for the upgrade to 4.19 and 4.20.
+Now that we have the custom manifest for our MCP workers, we can create the policies for the upgrade to {lab-mid-version} and {lab-major-version}.
 
 
 [#automation-with-acm-and-talm]
@@ -231,9 +234,9 @@ Now that we have the custom manifest for our MCP workers, we can create the poli
 
 The entire end-to-end procedure is orchestrated using Red Hat Advanced Cluster Management (ACM) and the Topology Aware Lifecycle Manager (TALM) operator.
 
-* **Policies**: ACM Policies are created on the Hub cluster for each distinct upgrade action (e.g., core-upgrade-ocp-19, core-upgrade-olm-19, core-upgrade-ocp-20, core-upgrade-workers-0, etc.). These policies are initially set to remediationAction: inform.
+* **Policies**: ACM Policies are created on the Hub cluster for each distinct upgrade action (e.g., core-upgrade-ocp-{version-suffix-mid}, core-upgrade-olm-{version-suffix-mid}, core-upgrade-ocp-{version-suffix-major}, core-upgrade-workers-0, etc.). These policies are initially set to remediationAction: inform.
 * **Orchestration**: A series of ClusterGroupUpgrade (CGU) custom resources are used to trigger and manage these policies in the correct sequence. TALM is responsible for moving policies from an 'inform' state to an 'enforce' state.
-* **Sequencing**: The blockingCRs stanza within a CGU is used to create dependencies, ensuring that one stage (e.g., the upgrade to 4.20) does not begin until the prerequisite stage (e.g., the upgrade to 4.19) has successfully completed.
+* **Sequencing**: The blockingCRs stanza within a CGU is used to create dependencies, ensuring that one stage (e.g., the upgrade to {lab-major-version}) does not begin until the prerequisite stage (e.g., the upgrade to {lab-mid-version}) has successfully completed.
 
 This approach transforms a complex, high-risk manual upgrade into a predictable, repeatable, and fully automated _zero-touch_ operation that executes significantly faster than traditional methods.
 
@@ -245,24 +248,24 @@ The core of the automation is a set of ACM Policies that declaratively define th
 
 The following policies are created to manage the upgrade from version  {openshift-release} to {openshift-intermediate-release}.
 
-In this section we are going to present parts of the PolicyGenerator file that will be used to start the Fast MNO Upgrade. At the end of this section you will create the complete PolicyGenerator file based on the reference core-upgrade PolicyGenerator available in the telco-reference repository https://github.com/openshift-kni/telco-reference/blob/release-4.20/telco-core/configuration/core-upgrade.yaml[here].
+In this section we are going to present parts of the PolicyGenerator file that will be used to start the Fast MNO Upgrade. At the end of this section you will create the complete PolicyGenerator file based on the reference core-upgrade PolicyGenerator available in the telco-reference repository https://github.com/openshift-kni/telco-reference/blob/release-{lab-major-version}/telco-core/configuration/core-upgrade.yaml[here].
 
-[#policy-core-upgrade-prep-19]
-=== Policy: core-upgrade-prep-19
+[#policy-core-upgrade-prep-mid]
+=== Policy: core-upgrade-prep-{version-suffix-mid}
 
 This is the *preparation policy*. It readies the spoke cluster for the control plane upgrade by:
 
-* *Updating the CatalogSource*: It points the redhat-operators-disconnected catalog to the v4.19 index image. This ensures OLM can find the correct operator versions compatible with 4.19.
+* *Updating the CatalogSource*: It points the redhat-operators-disconnected catalog to the {openshift-intermediate-release} index image. This ensures OLM can find the correct operator versions compatible with {lab-mid-version}.
 * *Pausing and Configuring Worker MCPs*: It patches all worker MachineConfigPools (worker-0 through worker-3) to set paused: true. This is a critical safety measure to *prevent worker nodes from upgrading while the control plane is in motion*. It also pro-actively sets maxUnavailable: "100%" in preparation for the parallel worker upgrade phase later.
 
 [source,yaml,subs="attributes+,+macros"]
 ----
 policies:
-  - name: core-upgrade-prep-19
+  - name: core-upgrade-prep-{version-suffix-mid}
     policyAnnotations:
       ran.openshift.io/soak-seconds: "30"
     manifests:
-      - path: v4.19/source-crs/reference-crs/required/other/catalog-source.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/required/other/catalog-source.yaml
         patches:
         - spec:
             image: infra.5g-deployment.lab:8443/redhat/redhat-operator-index:{catalogsource-index-image-tag-ocp-intermediate-release}
@@ -276,19 +279,19 @@ policies:
       #   patches:
       #   - data:
       #       ack-4.15-kube-1.29-api-removals-in-4.16: "true"
-      - path: v4.19/source-crs/reference-crs/custom-manifests/mcp-worker-0.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/custom-manifests/mcp-worker-0.yaml
         patches:
         - spec:
           # Adjust as needed based on spare capacity, cluster design, and application requirements
             maxUnavailable: "100%"
             paused: true
-      - path: v4.19/source-crs/reference-crs/custom-manifests/mcp-worker-1.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/custom-manifests/mcp-worker-1.yaml
         patches:
         - spec:
           # Adjust as needed based on spare capacity, cluster design, and application requirements
             maxUnavailable: "100%"
             paused: true
-      - path: v4.19/source-crs/reference-crs/custom-manifests/mcp-worker-2.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/custom-manifests/mcp-worker-2.yaml
         patches:
         - spec:
           # Adjust as needed based on spare capacity, cluster design, and application requirements
@@ -296,10 +299,10 @@ policies:
             paused: true
 ----
 
-[#policy-core-upgrade-ocp-19]
-=== Policy: core-upgrade-ocp-19
+[#policy-core-upgrade-ocp-mid]
+=== Policy: core-upgrade-ocp-{version-suffix-mid}
 
-This is the main upgrade policy. Its sole purpose is to target the ClusterVersion resource on the spoke cluster and instruct it to begin the upgrade. It sets the desired channel to stable-4.19 and provides the specific image and version ({mno-cluster-version2}) for the cluster to upgrade to. 
+This is the main upgrade policy. Its sole purpose is to target the ClusterVersion resource on the spoke cluster and instruct it to begin the upgrade. It sets the desired channel to stable-{lab-mid-version} and provides the specific image and version ({mno-cluster-version2}) for the cluster to upgrade to. 
 
 To obtain the correct `image` digest for your mirror registry, run:
 
@@ -315,16 +318,16 @@ Replace the `image` value below with the output of that command.
 [source,yaml,subs="attributes+,+macros"]
 ----
 policies:
-  - name: core-upgrade-ocp-19
+  - name: core-upgrade-ocp-{version-suffix-mid}
     manifests:
-      - path: v4.19/source-crs/reference-crs/optional/other/ClusterVersion.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/optional/other/ClusterVersion.yaml
         patches:
         - spec:
             channel: stable-{lab-mid-version}
             desiredUpdate:
               # Replace version, image and status below with desired version
               version: {mno-cluster-version2-cvo}
-              image: infra.5g-deployment.lab:8443/openshift/release-images@sha256:3ef832b8bb0d56331035ba54af36c36be46d6c6dc1a41e300055692f02bb001d
+              image: infra.5g-deployment.lab:8443/openshift/release-images@{fast-upgrade-ocp-intermediate-image-digest}
               force: true
         - status:
             history:
@@ -332,8 +335,8 @@ policies:
               state: "Completed"
 ----
 
-[#policy-core-upgrade-olm-19]
-=== Policy: core-upgrade-olm-19
+[#policy-core-upgrade-olm-mid]
+=== Policy: core-upgrade-olm-{version-suffix-mid}
 
 This is the operator lifecycle policy. After the control plane upgrades, this policy ensures all Operator Lifecycle Manager (OLM) Subscriptions (for cluster-logging, sriov-network-operator, odf-operator, etc.) are updated to their respective channels compatible with version {lab-mid-version}.
 
@@ -341,25 +344,25 @@ The following subscriptions are created to manage the upgrade from version {open
 
 [source,yaml,subs="attributes+,+macros"]
 ----
-  - name: core-upgrade-olm-19
+  - name: core-upgrade-olm-{version-suffix-mid}
     policyAnnotations:
       # Ensure that status for OLM created operators has time to propagate
       ran.openshift.io/soak-seconds: "60"
     manifests:
-      - path: v4.19/source-crs/reference-crs/optional/logging/ClusterLogSubscription.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/optional/logging/ClusterLogSubscription.yaml
         patches:
         - metadata:
             annotations:
-              noop-for-triggering-noncompliance: "19"
+              noop-for-triggering-noncompliance: "{version-suffix-mid}"
         - spec:
-            channel: stable-6.4
+            channel: {cluster-logging-channel-ocp-intermediate-release}
             installPlanApproval: Automatic
             name: cluster-logging
             source: redhat-operators-disconnected
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.19/source-crs/reference-crs/required/networking/sriov/SriovSubscription.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/required/networking/sriov/SriovSubscription.yaml
         patches:
         - spec:
             channel: stable
@@ -369,17 +372,17 @@ The following subscriptions are created to manage the upgrade from version {open
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.19/source-crs/reference-crs/required/storage/odf-external/odfSubscription.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/required/storage/odf-external/odfSubscription.yaml
         patches:
         - spec:
-            channel: stable-4.19
+            channel: {odf-channel-intermediate}
             installPlanApproval: Automatic
             name: odf-operator
             source: redhat-operators-disconnected
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.19/source-crs/reference-crs/required/networking/NMStateSubscription.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/required/networking/NMStateSubscription.yaml
         patches:
         - spec:
             channel: stable
@@ -389,7 +392,7 @@ The following subscriptions are created to manage the upgrade from version {open
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.19/source-crs/reference-crs/required/networking/metallb/metallbSubscription.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/required/networking/metallb/metallbSubscription.yaml
         patches:
         - spec:
             channel: stable
@@ -399,10 +402,10 @@ The following subscriptions are created to manage the upgrade from version {open
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.19/source-crs/reference-crs/required/scheduling/NROPSubscription.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/required/scheduling/NROPSubscription.yaml
         patches:
         - spec:
-            channel: "4.19"
+            channel: "{nrop-channel-intermediate}"
             installPlanApproval: Automatic
             name: numaresources-operator
             source: redhat-operators-disconnected
@@ -414,25 +417,25 @@ The following subscriptions are created to manage the upgrade from version {open
   # level operators.
 ----
 
-[#policy-core-upgrade-validate-19]
-=== Policy: core-upgrade-validate-19
+[#policy-core-upgrade-validate-mid]
+=== Policy: core-upgrade-validate-{version-suffix-mid}
 
 This reference CR uses an `object-templates-raw` block to verify that all operator Subscriptions have reconciled after the upgrade. 
 
-> IMPORTANT: The subscription-validator.yaml does no exist in 4.19, but it does exist in 4.20. We will use the one in 4.20 since it is a good practice to validate the OLM upgrade.
+> IMPORTANT: The subscription-validator.yaml does not exist in {lab-mid-version}, but it does exist in {lab-major-version}. We will use the one in {lab-major-version} since it is a good practice to validate the OLM upgrade.
 
 [source,yaml,subs="attributes+,+macros"]
 ----
 policies:
-  - name: core-upgrade-validate-19
+  - name: core-upgrade-validate-{version-suffix-mid}
     policyAnnotations:
       # Ensure that propagation to OLM created operators has time to propagate
       ran.openshift.io/soak-seconds: "30"
     manifests:
-      - path: v4.20/source-crs/reference-crs/custom-manifests/subscription-validator.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/custom-manifests/subscription-validator.yaml
 ----
 
-[#policygen-19]
+[#policygen-mid]
 === The PolicyGenerator for {lab-minor-version} → {lab-mid-version}
 
 Now create the `PolicyGenerator` CR that bundles the reference CRs created above into four ACM Policies. The `placement.labelSelector` block defines which managed clusters receive the policies — TALM will add and remove these labels automatically as the upgrade progresses.
@@ -440,13 +443,13 @@ Now create the `PolicyGenerator` CR that bundles the reference CRs created above
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 ----
-cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-policies/fleet/active/core-upgrade-19.yaml
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-policies/fleet/active/core-upgrade-{version-suffix-mid}.yaml
 apiVersion: policy.open-cluster-management.io/v1
 kind: PolicyGenerator
 metadata:
-  name: core-upgrade-19
+  name: core-upgrade-{version-suffix-mid}
 placementBindingDefaults:
-  name: core-upgrade-19-placement-binding
+  name: core-upgrade-{version-suffix-mid}-placement-binding
 policyDefaults:
   namespace: ztp-policies
   placement:
@@ -455,77 +458,77 @@ policyDefaults:
         - key: common
           operator: In
           values:
-            - ocp418
-            - ocp419
+            - {policygen-common-label-ocp-release}
+            - {policygen-common-label-ocp-intermediate-release}
         - key: rds
           operator: In
           values:
             - core
-        - key: upgrade-fast-418-420
+        - key: {fast-upgrade-label}
           operator: Exists
   remediationAction: inform
   severity: low
 policies:
-  - name: core-upgrade-prep-19
+  - name: core-upgrade-prep-{version-suffix-mid}
     policyAnnotations:
       ran.openshift.io/soak-seconds: "30"
     manifests:
-      - path: v4.19/source-crs/reference-crs/required/other/catalog-source.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/required/other/catalog-source.yaml
         patches:
         - spec:
             image: infra.5g-deployment.lab:8443/redhat/redhat-operator-index:{catalogsource-index-image-tag-ocp-intermediate-release}
         - status:
             connectionState:
               lastObservedState: READY
-      - path: v4.19/source-crs/reference-crs/custom-manifests/mcp-worker-0.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/custom-manifests/mcp-worker-0.yaml
         patches:
         - spec:
             maxUnavailable: "100%"
             paused: true
-      - path: v4.19/source-crs/reference-crs/custom-manifests/mcp-worker-1.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/custom-manifests/mcp-worker-1.yaml
         patches:
         - spec:
             maxUnavailable: "100%"
             paused: true
-      - path: v4.19/source-crs/reference-crs/custom-manifests/mcp-worker-2.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/custom-manifests/mcp-worker-2.yaml
         patches:
         - spec:
             maxUnavailable: "100%"
             paused: true
-  - name: core-upgrade-ocp-19
+  - name: core-upgrade-ocp-{version-suffix-mid}
     manifests:
-      - path: v4.19/source-crs/reference-crs/optional/other/ClusterVersion.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/optional/other/ClusterVersion.yaml
         patches:
         - spec:
             channel: stable-{lab-mid-version}
             desiredUpdate:
               # Replace version, image and status below with desired version
               version: {mno-cluster-version2-cvo}
-              image: infra.5g-deployment.lab:8443/openshift/release-images@sha256:3ef832b8bb0d56331035ba54af36c36be46d6c6dc1a41e300055692f02bb001d
+              image: infra.5g-deployment.lab:8443/openshift/release-images@{fast-upgrade-ocp-intermediate-image-digest}
               force: true
         - status:
             history:
             - version: {mno-cluster-version2-cvo}
               state: "Completed"
-  - name: core-upgrade-olm-19
+  - name: core-upgrade-olm-{version-suffix-mid}
     policyAnnotations:
       # Ensure that status for OLM created operators has time to propagate
       ran.openshift.io/soak-seconds: "60"
     manifests:
-      - path: v4.19/source-crs/reference-crs/optional/logging/ClusterLogSubscription.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/optional/logging/ClusterLogSubscription.yaml
         patches:
         - metadata:
             annotations:
-              noop-for-triggering-noncompliance: "19"
+              noop-for-triggering-noncompliance: "{version-suffix-mid}"
         - spec:
-            channel: stable-6.4
+            channel: {cluster-logging-channel-ocp-intermediate-release}
             installPlanApproval: Automatic
             name: cluster-logging
             source: redhat-operators-disconnected
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.19/source-crs/reference-crs/required/networking/sriov/SriovSubscription.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/required/networking/sriov/SriovSubscription.yaml
         patches:
         - spec:
             channel: stable
@@ -535,17 +538,17 @@ policies:
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.19/source-crs/reference-crs/required/storage/odf-external/odfSubscription.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/required/storage/odf-external/odfSubscription.yaml
         patches:
         - spec:
-            channel: stable-4.19
+            channel: {odf-channel-intermediate}
             installPlanApproval: Automatic
             name: odf-operator
             source: redhat-operators-disconnected
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.19/source-crs/reference-crs/required/networking/NMStateSubscription.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/required/networking/NMStateSubscription.yaml
         patches:
         - spec:
             channel: stable
@@ -555,7 +558,7 @@ policies:
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.19/source-crs/reference-crs/required/networking/metallb/metallbSubscription.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/required/networking/metallb/metallbSubscription.yaml
         patches:
         - spec:
             channel: stable
@@ -565,22 +568,22 @@ policies:
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.19/source-crs/reference-crs/required/scheduling/NROPSubscription.yaml
+      - path: {openshift-intermediate-release}/source-crs/reference-crs/required/scheduling/NROPSubscription.yaml
         patches:
         - spec:
-            channel: "4.19"
+            channel: "{nrop-channel-intermediate}"
             installPlanApproval: Automatic
             name: numaresources-operator
             source: redhat-operators-disconnected
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-  - name: core-upgrade-validate-19
+  - name: core-upgrade-validate-{version-suffix-mid}
     policyAnnotations:
       # Ensure that propagation to OLM created operators has time to propagate
       ran.openshift.io/soak-seconds: "30"
     manifests:
-      - path: v4.20/source-crs/reference-crs/custom-manifests/subscription-validator.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/custom-manifests/subscription-validator.yaml
 EOF
 ----
 
@@ -590,21 +593,21 @@ EOF
 
 The following policies are created to manage the upgrade from version {lab-mid-version} to {lab-major-version}. The policies are exactly the same as the ones created for the {lab-minor-version} → {lab-mid-version} upgrade, but adapted in terms of version numbers for the {lab-mid-version} → {lab-major-version} upgrade.
 
-> IMPORTANT: Notice that the path to the source CRs in all the policies points now v4.20, not v4.19 as in the previous section.
+> IMPORTANT: Notice that the path to the source CRs in all the policies points now {openshift-final-release}, not {openshift-intermediate-release} as in the previous section.
 
-[#policy-core-upgrade-prep-20]
-=== Policy: core-upgrade-prep-20
+[#policy-core-upgrade-prep-major]
+=== Policy: core-upgrade-prep-{version-suffix-major}
 
-This is the preparation policy. It readies the spoke cluster for the control plane upgrade. This is exactly the same policy as xref:fast-mno-policy-preparation.adoc#policy-core-upgrade-prep-19[Policy: core-upgrade-prep-19] adapted for the {lab-mid-version} upgrade.
+This is the preparation policy. It readies the spoke cluster for the control plane upgrade. This is exactly the same policy as xref:fast-mno-policy-preparation.adoc#policy-core-upgrade-prep-mid[Policy: core-upgrade-prep-{version-suffix-mid}] adapted for the {lab-mid-version} upgrade.
 
 [source,yaml,subs="attributes+,+macros"]
 ----
 policies:
-  - name: core-upgrade-prep-20
+  - name: core-upgrade-prep-{version-suffix-major}
     policyAnnotations:
       ran.openshift.io/soak-seconds: "30"
     manifests:
-      - path: v4.20/source-crs/reference-crs/required/other/catalog-source.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/required/other/catalog-source.yaml
         patches:
         - spec:
             image: infra.5g-deployment.lab:8443/redhat/redhat-operator-index:{catalogsource-index-image-tag-ocp-next-release}
@@ -618,19 +621,19 @@ policies:
       #   patches:
       #   - data:
       #       ack-4.15-kube-1.29-api-removals-in-4.16: "true"
-      - path: v4.20/source-crs/reference-crs/custom-manifests/mcp-worker-0.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/custom-manifests/mcp-worker-0.yaml
         patches:
         - spec:
           # Adjust as needed based on spare capacity, cluster design, and application requirements
             maxUnavailable: "100%"
             paused: true
-      - path: v4.20/source-crs/reference-crs/custom-manifests/mcp-worker-1.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/custom-manifests/mcp-worker-1.yaml
         patches:
         - spec:
           # Adjust as needed based on spare capacity, cluster design, and application requirements
             maxUnavailable: "100%"
             paused: true
-      - path: v4.20/source-crs/reference-crs/custom-manifests/mcp-worker-2.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/custom-manifests/mcp-worker-2.yaml
         patches:
         - spec:
           # Adjust as needed based on spare capacity, cluster design, and application requirements
@@ -639,24 +642,24 @@ policies:
 ----
 
 
-[policy-core-upgrade-ocp-20]
-=== Policy: core-upgrade-ocp-20
+[#policy-core-upgrade-ocp-major]
+=== Policy: core-upgrade-ocp-{version-suffix-major}
 
-This is the main upgrade policy. Its sole purpose is to target the ClusterVersion resource on the spoke cluster and instruct it to begin the upgrade to {mno-cluster-version3-cvo}. More information was detailed in the xref:fast-mno-policy-preparation.adoc#policy-core-upgrade-ocp-19[Policy: core-upgrade-ocp-19] section.
+This is the main upgrade policy. Its sole purpose is to target the ClusterVersion resource on the spoke cluster and instruct it to begin the upgrade to {mno-cluster-version3-cvo}. More information was detailed in the xref:fast-mno-policy-preparation.adoc#policy-core-upgrade-ocp-mid[Policy: core-upgrade-ocp-{version-suffix-mid}] section.
 
 [source,yaml,subs="attributes+,+macros"]
 ----
 policies:
-  - name: core-upgrade-ocp-20
+  - name: core-upgrade-ocp-{version-suffix-major}
     manifests:
-      - path: v4.20/source-crs/reference-crs/optional/other/ClusterVersion.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/optional/other/ClusterVersion.yaml
         patches:
         - spec:
             channel: stable-{lab-major-version}
             desiredUpdate:
               # Replace version, image and status below with desired version
               version: {mno-cluster-version3-cvo}
-              image: infra.5g-deployment.lab:8443/openshift/release-images@sha256:91606a5f04331ed3293f71034d4f480e38645560534805fe5a821e6b64a3f203
+              image: infra.5g-deployment.lab:8443/openshift/release-images@{fast-upgrade-ocp-final-image-digest}
               force: true
         - status:
             history:
@@ -664,32 +667,32 @@ policies:
               state: "Completed"
 ----
 
-[policy-core-upgrade-olm-20]
-=== Policy: core-upgrade-olm-20
+[#policy-core-upgrade-olm-major]
+=== Policy: core-upgrade-olm-{version-suffix-major}
 
-This is the operator lifecycle policy. After the control plane upgrades, this policy ensures all Operator Lifecycle Manager (OLM) Subscriptions are updated to their respective channels compatible with version 4.20.
+This is the operator lifecycle policy. After the control plane upgrades, this policy ensures all Operator Lifecycle Manager (OLM) Subscriptions are updated to their respective channels compatible with version {lab-major-version}.
 
 [source,yaml,subs="attributes+,+macros"]
 ----
-  - name: core-upgrade-olm-20
+  - name: core-upgrade-olm-{version-suffix-major}
     policyAnnotations:
       # Ensure that status for OLM created operators has time to propagate
       ran.openshift.io/soak-seconds: "60"
     manifests:
-      - path: v4.20/source-crs/reference-crs/optional/logging/ClusterLogSubscription.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/optional/logging/ClusterLogSubscription.yaml
         patches:
         - metadata:
             annotations:
-              noop-for-triggering-noncompliance: "20"
+              noop-for-triggering-noncompliance: "{version-suffix-major}"
         - spec:
-            channel: stable-6.4
+            channel: {cluster-logging-channel-ocp-next-release}
             installPlanApproval: Automatic
             name: cluster-logging
             source: redhat-operators-disconnected
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.20/source-crs/reference-crs/required/networking/sriov/SriovSubscription.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/required/networking/sriov/SriovSubscription.yaml
         patches:
         - spec:
             channel: stable
@@ -699,17 +702,17 @@ This is the operator lifecycle policy. After the control plane upgrades, this po
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.20/source-crs/reference-crs/required/storage/odf-external/odfSubscription.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/required/storage/odf-external/odfSubscription.yaml
         patches:
         - spec:
-            channel: stable-4.20
+            channel: {odf-channel-final}
             installPlanApproval: Automatic
             name: odf-operator
             source: redhat-operators-disconnected
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.20/source-crs/reference-crs/required/networking/NMStateSubscription.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/required/networking/NMStateSubscription.yaml
         patches:
         - spec:
             channel: stable
@@ -719,7 +722,7 @@ This is the operator lifecycle policy. After the control plane upgrades, this po
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.20/source-crs/reference-crs/required/networking/metallb/metallbSubscription.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/required/networking/metallb/metallbSubscription.yaml
         patches:
         - spec:
             channel: stable
@@ -729,10 +732,10 @@ This is the operator lifecycle policy. After the control plane upgrades, this po
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.20/source-crs/reference-crs/required/scheduling/NROPSubscription.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/required/scheduling/NROPSubscription.yaml
         patches:
         - spec:
-            channel: "4.20"
+            channel: "{nrop-channel-final}"
             installPlanApproval: Automatic
             name: numaresources-operator
             source: redhat-operators-disconnected
@@ -742,23 +745,23 @@ This is the operator lifecycle policy. After the control plane upgrades, this po
 ----
 
 
-[#policy-core-upgrade-validate-20]
-=== Policy: core-upgrade-validate-20
+[#policy-core-upgrade-validate-major]
+=== Policy: core-upgrade-validate-{version-suffix-major}
 
 This is the validation policy. It serves as a final check to confirm that all OLM operators on the cluster have successfully updated and reconciled.
 
 [source,yaml,subs="attributes+,+macros"]
 ----
 policies:
-  - name: core-upgrade-validate-20
+  - name: core-upgrade-validate-{version-suffix-major}
     policyAnnotations:
       # Ensure that propagation to OLM created operators has time to propagate
       ran.openshift.io/soak-seconds: "30"
     manifests:
-      - path: v4.20/source-crs/reference-crs/custom-manifests/subscription-validator.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/custom-manifests/subscription-validator.yaml
 ----
 
-[#policygen-20]
+[#policygen-major]
 === The PolicyGenerator for {lab-mid-version} → {lab-major-version}
 
 Now create the `PolicyGenerator` CR that bundles the reference CRs created above into four ACM Policies. The `placement.labelSelector` block defines which managed clusters receive the policies — TALM will add and remove these labels automatically as the upgrade progresses.
@@ -766,13 +769,13 @@ Now create the `PolicyGenerator` CR that bundles the reference CRs created above
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 ----
-cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-policies/fleet/active/core-upgrade-20.yaml
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-policies/fleet/active/core-upgrade-{version-suffix-major}.yaml
 apiVersion: policy.open-cluster-management.io/v1
 kind: PolicyGenerator
 metadata:
-  name: core-upgrade-20
+  name: core-upgrade-{version-suffix-major}
 placementBindingDefaults:
-  name: core-upgrade-20-placement-binding
+  name: core-upgrade-{version-suffix-major}-placement-binding
 policyDefaults:
   namespace: ztp-policies
   placement:
@@ -781,77 +784,77 @@ policyDefaults:
         - key: common
           operator: In
           values:
-            - ocp418
-            - ocp419
+            - {policygen-common-label-ocp-release}
+            - {policygen-common-label-ocp-intermediate-release}
         - key: rds
           operator: In
           values:
             - core
-        - key: upgrade-fast-418-420
+        - key: {fast-upgrade-label}
           operator: Exists
   remediationAction: inform
   severity: low
 policies:
-  - name: core-upgrade-prep-20
+  - name: core-upgrade-prep-{version-suffix-major}
     policyAnnotations:
       ran.openshift.io/soak-seconds: "30"
     manifests:
-      - path: v4.20/source-crs/reference-crs/required/other/catalog-source.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/required/other/catalog-source.yaml
         patches:
         - spec:
             image: infra.5g-deployment.lab:8443/redhat/redhat-operator-index:{catalogsource-index-image-tag-ocp-next-release}
         - status:
             connectionState:
               lastObservedState: READY
-      - path: v4.20/source-crs/reference-crs/custom-manifests/mcp-worker-0.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/custom-manifests/mcp-worker-0.yaml
         patches:
         - spec:
             maxUnavailable: "100%"
             paused: true
-      - path: v4.20/source-crs/reference-crs/custom-manifests/mcp-worker-1.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/custom-manifests/mcp-worker-1.yaml
         patches:
         - spec:
             maxUnavailable: "100%"
             paused: true
-      - path: v4.20/source-crs/reference-crs/custom-manifests/mcp-worker-2.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/custom-manifests/mcp-worker-2.yaml
         patches:
         - spec:
             maxUnavailable: "100%"
             paused: true
-  - name: core-upgrade-ocp-20
+  - name: core-upgrade-ocp-{version-suffix-major}
     manifests:
-      - path: v4.20/source-crs/reference-crs/optional/other/ClusterVersion.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/optional/other/ClusterVersion.yaml
         patches:
         - spec:
-            channel: stable-{lab-mid-version}
+            channel: stable-{lab-major-version}
             desiredUpdate:
               # Replace version, image and status below with desired version
               version: {mno-cluster-version3-cvo}
-              image: infra.5g-deployment.lab:8443/openshift/release-images@sha256:91606a5f04331ed3293f71034d4f480e38645560534805fe5a821e6b64a3f203
+              image: infra.5g-deployment.lab:8443/openshift/release-images@{fast-upgrade-ocp-final-image-digest}
               force: true
         - status:
             history:
             - version: {mno-cluster-version3-cvo}
               state: "Completed"
-  - name: core-upgrade-olm-20
+  - name: core-upgrade-olm-{version-suffix-major}
     policyAnnotations:
       # Ensure that status for OLM created operators has time to propagate
       ran.openshift.io/soak-seconds: "60"
     manifests:
-      - path: v4.20/source-crs/reference-crs/optional/logging/ClusterLogSubscription.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/optional/logging/ClusterLogSubscription.yaml
         patches:
         - metadata:
             annotations:
-              noop-for-triggering-noncompliance: "20"
+              noop-for-triggering-noncompliance: "{version-suffix-major}"
         - spec:
-            channel: stable-6.4
+            channel: {cluster-logging-channel-ocp-next-release}
             installPlanApproval: Automatic
             name: cluster-logging
             source: redhat-operators-disconnected
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.20/source-crs/reference-crs/required/networking/sriov/SriovSubscription.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/required/networking/sriov/SriovSubscription.yaml
         patches:
         - spec:
             channel: stable
@@ -861,17 +864,17 @@ policies:
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.20/source-crs/reference-crs/required/storage/odf-external/odfSubscription.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/required/storage/odf-external/odfSubscription.yaml
         patches:
         - spec:
-            channel: stable-4.20
+            channel: {odf-channel-final}
             installPlanApproval: Automatic
             name: odf-operator
             source: redhat-operators-disconnected
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.20/source-crs/reference-crs/required/networking/NMStateSubscription.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/required/networking/NMStateSubscription.yaml
         patches:
         - spec:
             channel: stable
@@ -881,7 +884,7 @@ policies:
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.20/source-crs/reference-crs/required/networking/metallb/metallbSubscription.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/required/networking/metallb/metallbSubscription.yaml
         patches:
         - spec:
             channel: stable
@@ -891,29 +894,29 @@ policies:
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-      - path: v4.20/source-crs/reference-crs/required/scheduling/NROPSubscription.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/required/scheduling/NROPSubscription.yaml
         patches:
         - spec:
-            channel: "4.20"
+            channel: "{nrop-channel-final}"
             installPlanApproval: Automatic
             name: numaresources-operator
             source: redhat-operators-disconnected
             sourceNamespace: openshift-marketplace
         - status:
             state: AtLatestKnown
-  - name: core-upgrade-validate-20
+  - name: core-upgrade-validate-{version-suffix-major}
     policyAnnotations:
       # Ensure that propagation to OLM created operators has time to propagate
       ran.openshift.io/soak-seconds: "30"
     manifests:
-      - path: v4.20/source-crs/reference-crs/custom-manifests/subscription-validator.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/custom-manifests/subscription-validator.yaml
 EOF
 ----
 
 [#worker-upgrade-policies]
 == Defining the Worker Upgrade Policies
 
-With the control plane policies ready to be upgraded to 4.20, the worker nodes are still paused. This final stage orchestrates the sequential, parallel upgrade of each worker MachineConfigPool (MCP).
+With the control plane policies ready to be upgraded to {lab-major-version}, the worker nodes are still paused. This final stage orchestrates the sequential, parallel upgrade of each worker MachineConfigPool (MCP).
 
 Next, we create a separate policy for each worker MCP. The sole purpose of each policy is to unpause its corresponding MCP by setting paused: false. The MCO on the spoke cluster will see this change and—because we set maxUnavailable: "100%" in the preparation policy—will begin upgrading all nodes in that MCP simultaneously.
 
@@ -943,13 +946,13 @@ policyDefaults:
         - key: common
           operator: In
           values:
-            - ocp418
-            - ocp419
+            - {policygen-common-label-ocp-release}
+            - {policygen-common-label-ocp-intermediate-release}
         - key: rds
           operator: In
           values:
             - core
-        - key: upgrade-fast-418-420
+        - key: {fast-upgrade-label}
           operator: Exists
   remediationAction: inform
   severity: low
@@ -959,7 +962,7 @@ policies:
       # Ensure propagation time
       ran.openshift.io/soak-seconds: "30"
     manifests:
-      - path: v4.20/source-crs/reference-crs/custom-manifests/mcp-worker-0.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/custom-manifests/mcp-worker-0.yaml
         patches:
         - spec:
             paused: false
@@ -975,7 +978,7 @@ policies:
       # Ensure propagation time
       ran.openshift.io/soak-seconds: "30"
     manifests:
-      - path: v4.20/source-crs/reference-crs/custom-manifests/mcp-worker-1.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/custom-manifests/mcp-worker-1.yaml
         patches:
         - spec:
             paused: false
@@ -991,7 +994,7 @@ policies:
       # Ensure propagation time
       ran.openshift.io/soak-seconds: "30"
     manifests:
-      - path: v4.20/source-crs/reference-crs/custom-manifests/mcp-worker-2.yaml
+      - path: {openshift-final-release}/source-crs/reference-crs/custom-manifests/mcp-worker-2.yaml
         patches:
         - spec:
             paused: false
@@ -1008,11 +1011,11 @@ EOF
 [#placement-binding]
 == Placement and Binding
 
-The PlacementRule and PlacementBinding are included into the PolicyGenerator CRs to apply all the policies related to the upgrade to 4.20, e.g cdocumentation/modules/ROOT/pages/installing-agentbasedinstall-cluster.adocontrol-plane and worker policies. 
+The PlacementRule and PlacementBinding are included into the PolicyGenerator CRs to apply all the policies related to the upgrade to {lab-major-version}, e.g cdocumentation/modules/ROOT/pages/installing-agentbasedinstall-cluster.adocontrol-plane and worker policies. 
 
-> IMPORTANT: The placementRule is configured to select all clusters with the following labels: common set to ocp418, ocp419, rds set to core, and the existence of the upgrade-fast-418-420 label. Cluster labeling will be automatically handled by the CGUs generated in subsequent sections.
+> IMPORTANT: The placementRule is configured to select all clusters with the following labels: common set to {policygen-common-label-ocp-release}, {policygen-common-label-ocp-intermediate-release}, rds set to core, and the existence of the {fast-upgrade-label} label. Cluster labeling will be automatically handled by the CGUs generated in subsequent sections.
 
-Upon applying the CGUs custom resources to our MNO cluster, certain labels will be automatically added, while some of the 4.18 and 4.19 upgrade labels will be removed or replaced. This will result in a seamless, automatic upgrade from EUS 4.18 to EUS 4.20.
+Upon applying the CGUs custom resources to our MNO cluster, certain labels will be automatically added, while some of the {lab-minor-version} and {lab-mid-version} upgrade labels will be removed or replaced. This will result in a seamless, automatic upgrade from EUS 4.18 to EUS 4.20.
 
 
 [#kustomization-all]
@@ -1027,10 +1030,10 @@ cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-policies/fleet/active/kustom
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - v4.18/
+  - {openshift-release}/
 generators:
-  - core-upgrade-19.yaml
-  - core-upgrade-20.yaml
+  - core-upgrade-{version-suffix-mid}.yaml
+  - core-upgrade-{version-suffix-major}.yaml
   - core-upgrade-finish.yaml
 EOF
 ----
@@ -1061,7 +1064,7 @@ Let's add the labels to the cluster and verify that the policies are now targeti
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
 ----
-oc --kubeconfig ~/hub-kubeconfig label managedcluster mno upgrade-fast-418-420=""
+oc --kubeconfig ~/hub-kubeconfig label managedcluster mno {fast-upgrade-label}=""
 ----
 
 Notice that all the policies are now targeting the cluster.
@@ -1069,7 +1072,7 @@ Notice that all the policies are now targeting the cluster.
 image::fast-upgrade-policies-targeted.png[Validation of the PolicyGenerators Targeted]
 
 
-Let's check as well the status of the policies using the CLI. It is important to notice that the policies related to the upgrade to 4.19 and 4.20 are non-compliant. On the other hand, all the worker core policies are compliant since when we installed the MNO cluster, we already configured the MachineConfigPools to be 100% maxUnavailable and not paused by default. 
+Let's check as well the status of the policies using the CLI. It is important to notice that the policies related to the upgrade to {lab-mid-version} and {lab-major-version} are non-compliant. On the other hand, all the worker core policies are compliant since when we installed the MNO cluster, we already configured the MachineConfigPools to be 100% maxUnavailable and not paused by default. 
 
 Anyway, this will change soon when we will apply the CGUs. But, this will take place in the next section.
 
@@ -1079,7 +1082,7 @@ Anyway, this will change soon when we will apply the CGUs. But, this will take p
 oc --kubeconfig ~/hub-kubeconfig get policies -n ztp-policies
 ----
 
-[source,console]
+[source,console,subs="attributes+"]
 ----
 NAME                               REMEDIATION ACTION   COMPLIANCE STATE   AGE
 common-config-policy               inform               Compliant          14m
@@ -1088,14 +1091,14 @@ common-operator-policy             inform               Compliant          14m
 common-operator-policy-test        inform                                  5d21h
 common-subscriptions-policy        inform               Compliant          14m
 common-subscriptions-policy-test   inform                                  5d21h
-core-upgrade-ocp-19                inform               NonCompliant       21m
-core-upgrade-ocp-20                inform               NonCompliant       21m
-core-upgrade-olm-19                inform               NonCompliant       21m
-core-upgrade-olm-20                inform               NonCompliant       21m
-core-upgrade-prep-19               inform               NonCompliant       21m
-core-upgrade-prep-20               inform               NonCompliant       21m
-core-upgrade-validate-19           inform               NonCompliant       21m
-core-upgrade-validate-20           inform               NonCompliant       21m
+core-upgrade-ocp-{version-suffix-mid}                inform               NonCompliant       21m
+core-upgrade-ocp-{version-suffix-major}                inform               NonCompliant       21m
+core-upgrade-olm-{version-suffix-mid}                inform               NonCompliant       21m
+core-upgrade-olm-{version-suffix-major}                inform               NonCompliant       21m
+core-upgrade-prep-{version-suffix-mid}               inform               NonCompliant       21m
+core-upgrade-prep-{version-suffix-major}               inform               NonCompliant       21m
+core-upgrade-validate-{version-suffix-mid}           inform               NonCompliant       21m
+core-upgrade-validate-{version-suffix-major}           inform               NonCompliant       21m
 core-upgrade-workers-0             inform               Compliant          19m
 core-upgrade-workers-1             inform               Compliant          19m
 core-upgrade-workers-2             inform               Compliant          19m

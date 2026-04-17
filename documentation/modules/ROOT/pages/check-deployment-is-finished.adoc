@@ -12,7 +12,7 @@ We say that the cluster deployment finished when the cluster has been deployed *
 1. Access the https://console-openshift-console.apps.hub.5g-deployment.lab/multicloud/home/welcome[RHACM WebUI] and login with the OpenShift credentials.
 2. Once you're in, click on `Infrastructure` -> `Clusters`. You will see a screen like the one below, notice that there is a label saying `ztp-done` for the MNO cluster (that means ztp pipeline has finished):
 +
-image::acm-sno-abi-ztp-done.png[RHACM SNO ABI ztp-done]
+image::acm-mno-abi-ztp-done.png[RHACM MNO ABI ztp-done]
 +
 3. Additionally, we can verify that all policies are compliant for our `mno` cluster. On the RHACM WebUI go to `Governance` -> `Policies` and you will see the following screen where we can see all policies are green:
 +
@@ -35,7 +35,7 @@ oc --kubeconfig ~/hub-kubeconfig get managedcluster mno --show-labels
 [source,console]
 -----
 NAME   HUB ACCEPTED   MANAGED CLUSTER URLS                         JOINED   AVAILABLE   AGE    LABELS
-mon    true           https://api.sno-abi.5g-deployment.lab:6443   True     True        122m   <OMITTED_LABELS>,ztp-done=
+mno    true           https://api.mno.5g-deployment.lab:6443       True     True        122m   <OMITTED_LABELS>,ztp-done=
 -----
 +
 2. Check the policies are compliant for our MNO cluster.
@@ -51,11 +51,10 @@ IMPORTANT: Applying policies on `mno` can take up to 15 minutes after cluster ha
 [console-input]
 [source,console]
 -----
-NAME                                        REMEDIATION ACTION   COMPLIANCE STATE   AGE
-ztp-policies.common-config-policies         inform               Compliant          74m
-ztp-policies.common-subscription-policies   inform               Compliant          74m
-ztp-policies.du-sno-group-policies          inform               Compliant          74m
-ztp-policies.du-sno-sites-sites-policy      inform               Compliant          74m
+NAME                                       REMEDIATION ACTION   COMPLIANCE STATE   AGE
+ztp-policies.common-config-policy          inform               Compliant          56m
+ztp-policies.common-operator-policy        inform               Compliant          56m
+ztp-policies.common-subscriptions-policy   inform               Compliant          56m
 -----
 
 3. At this stage `mno` OpenShift cluster is ready to run 5G Core workloads.
