@@ -10,7 +10,7 @@ content:
   sources:
     - url: ./
       branches:
-      - 'main'
+      - 'lab-4.20'
       start_path: documentation
 
 asciidoc:
