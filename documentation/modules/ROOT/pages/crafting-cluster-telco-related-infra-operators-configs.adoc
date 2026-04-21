@@ -15,7 +15,7 @@ IMPORTANT: Below commands must be executed from the infrastructure host if not s
 
 The common policies apply to every cluster in our infrastructure that matches our binding rule.  They are designed for universal configurations that apply to a broad set of clusters sharing an OpenShift release. This reinforces the efficiency gains of managing a large fleet. They are often used to configure things like CatalogSources, operator deployments, etc. that are common to all our clusters.
 
-These configs may vary from release to release, that's why we create a `{policygen-common-file}` file. We will likely have a common configuration profile for each release we deploy.
+These configs may vary from release to release, that's why we create a `{policygen-common-file-ocp-release}` file. We will likely have a common configuration profile for each release we deploy.
 
 IMPORTANT: The PolicyGenerator object utilizes binding rules defined by labels (e.g., common: "ocp419" and logicalGroup: "active") that are pre-set within the ClusterInstance definition, ensuring that these common configurations are automatically applied to the designated clusters across your fleet.
 

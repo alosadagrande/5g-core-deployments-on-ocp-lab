@@ -916,7 +916,7 @@ Now, let's add the **extra** or **custom** Core configuration to the cluster. In
 -----
 for release in {lab-minor-version} {lab-mid-version} {lab-major-version}
 do
-cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/install-manifests/${release}/custom-manifests/fast-upgrades-mcps.yaml
+cat <<EOF > ~/5g-deployment-lab/ztp-repository/site-configs/install-manifests/$\{release}/custom-manifests/fast-upgrades-mcps.yaml
 ---
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
@@ -1127,7 +1127,7 @@ oc --kubeconfig ~/hub-kubeconfig -n mno get agentclusterinstall mno -o yaml
 - lastProbeTime: "{last-update-date}T16:18:20Z"
   lastTransitionTime: "{last-update-date}T16:18:20Z"
   message: 'The installation is in progress: Finalizing cluster installation. Cluster
-    version status: progressing, message: Working towards {sno-cluster-version1-cvo}: 523 of 829 done
+    version status: progressing, message: Working towards {mno-cluster-version1-cvo}: 523 of 829 done
     (63% complete)'
   reason: InstallationInProgress
   status: "False"
