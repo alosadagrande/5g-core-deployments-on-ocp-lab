@@ -103,10 +103,10 @@ IMPORTANT: The cluster name for the OpenShift standard cluster that we will be d
 cd ~/5g-deployment-lab/ztp-repository/
 for release in {lab-minor-version} {lab-mid-version} {lab-major-version}
 do
-  mkdir -p site-configs/{hub-1,resources,pre-reqs/mno-cluster,hub-1/extra-manifest,install-manifests/${release}/extra-manifests,install-manifests/${release}/custom-manifests}
-  mkdir -p site-policies/{fleet/active/v${release}/source-crs/reference-crs,fleet/active/v${release}/source-crs/custom-crs}
-  touch site-configs/{hub-1,resources,pre-reqs/mno-cluster,hub-1/extra-manifest,install-manifests/${release}/extra-manifests,install-manifests/${release}/custom-manifests}/.gitkeep
-  touch site-policies/{fleet/active/v${release}/source-crs/reference-crs,fleet/active/v${release}/source-crs/custom-crs}/.gitkeep
+  mkdir -p site-configs/{hub-1,resources,pre-reqs/mno-cluster,hub-1/extra-manifest,install-manifests/$\{release}/extra-manifests,install-manifests/$\{release}/custom-manifests}
+  mkdir -p site-policies/{fleet/active/v$\{release}/source-crs/reference-crs,fleet/active/v$\{release}/source-crs/custom-crs}
+  touch site-configs/{hub-1,resources,pre-reqs/mno-cluster,hub-1/extra-manifest,install-manifests/$\{release}/extra-manifests,install-manifests/$\{release}/custom-manifests}/.gitkeep
+  touch site-policies/{fleet/active/v$\{release}/source-crs/reference-crs,fleet/active/v$\{release}/source-crs/custom-crs}/.gitkeep
 done
 mkdir -p site-policies/{fleet/testing/{openshift-release}/source-crs/reference-crs,fleet/testing/{openshift-release}/source-crs/custom-crs}
 git add --all

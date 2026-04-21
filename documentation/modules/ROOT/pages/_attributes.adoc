@@ -1,12 +1,9 @@
 code:experimental:
-:source-highlighter: highlightjs
 :branch: lab-4.20
 :lab-minor-version: 4.18
 :lab-mid-version: 4.19
 :lab-major-version: 4.20
 :repo_user: RHsyseng
-:github-repo: https://github.com/{repo_user}/5g-ran-deployments-on-ocp-lab/blob/{branch}
-:profile: 5g-ran-lab
 :openshift-release: v4.18
 :openshift-intermediate-release: v4.19
 :openshift-final-release: v4.20
@@ -15,19 +12,12 @@ code:experimental:
 :mno-initial-imageset-file: ocp-418-33-imageset.yaml
 :rds-link: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/telco-core-ref-design-specs#telco-core-rds-product-version-use-model-overview_telco-core
 :rds-config: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/telco-core-ref-design-specs#telco-core-reference-configuration-crs
-:rds-components: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/telco-ran-du-ref-design-specs#telco-ran-du-reference-design-components_telco-ran-du
 :core-rds-version-manifests: core-rds-418-manifests
 :core-rds-version-custom-manifests: core-418-custom-manifests
-:policygen-common-file-ocp-release: common-418.yaml 
-:policygen-common-file-ocp-intermediate-release: common-419.yaml
-:policygen-common-file-ocp-next-release: common-420.yaml
+:policygen-common-file-ocp-release: common-418.yaml
 :policygen-common-label-ocp-release: ocp418
 :policygen-common-label-ocp-intermediate-release: ocp419
 :policygen-common-label-ocp-next-release: ocp420
-:lvms-channel: stable-4.20
-:seed-cluster-kubeconfig: ~/seed-cluster-kubeconfig
-:abi-cluster-kubeconfig: ~/abi-cluster-kubeconfig
-:ibi-cluster-kubeconfig: ~/ibi-cluster-kubeconfig
 :catalogsource-index-image-tag-ocp-release: v4.18-1771330977
 :catalogsource-index-image-tag-ocp-intermediate-release: v4.19-1772552013
 :catalogsource-index-image-tag-ocp-next-release: v4.20-1769431701
@@ -37,7 +27,6 @@ code:experimental:
 :ztp-core-reference-ocp-next-release-disconnected-image: infra.5g-deployment.lab:8443/openshift4/openshift-telco-core-rds-rhel9:v4.20.1-3
 :example-mno-clusterinstance-link: https://github.com/stolostron/siteconfig/blob/release-2.15/config/samples/assisted-installer/example-standard.yaml
 :example-groupdu-policygen-link: https://github.com/openshift-kni/cnf-features-deploy/blob/release-4.20/ztp/gitops-subscriptions/argocd/example/policygentemplates/group-du-standard-ranGen.yaml
-:reference-documentation: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/ztp-vdu-configuration-reference#ztp-du-firmware-config-reference_vdu-config-ref
 // demo_environment controls some texts that are shown only when running/not running on demo.redhat.com
 //:demo_environment: demo_environment_here --> This attribute needs to be defined in site.yml for being able to use it in nav.adoc
 :hub_admin_password: admin_password_here
@@ -53,15 +42,7 @@ code:experimental:
 :mno-cluster-version2-cvo: 4.19.24
 :mno-cluster-version3-cvo: 4.20.8
 :active-ocp-version-clusterimageset: infra.5g-deployment.lab:8443/openshift/release-images:{mno-cluster-version1-cvo}-x86_64
-:talm-update-file: zone-europe-upgrade-420-8.yaml
-:talm-update-channel: stable-4.20
-:talm-update-version: 4.20.8
-// oc adm release info 4.17.4 | grep "Pull From"
-:talm-update-image: infra.5g-deployment.lab:8443/rhsysdeseng/lab5gran:v4.20.8
-//:talm-update-image:  infra.5g-deployment.lab:8443/openshift/release-images@sha256:bada2d7626c8652e0fb68d3237195cb37f425e960347fbdd747beb17f671cf13
-:talm-update-policy-name: version-420-1
 // Fast MNO Upgrade
-:version-suffix-minor: 18
 :version-suffix-mid: 19
 :version-suffix-major: 20
 :fast-upgrade-rds-image-tag-intermediate: v4.19.4-4
@@ -90,37 +71,24 @@ code:experimental:
 :disconnected-registry-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/disconnected_environments/mirroring-in-disconnected-environments#installing-mirroring-creating-registry
 :openshift-gitops-docs: https://docs.redhat.com/en/documentation/red_hat_openshift_gitops/1.15/html/understanding_openshift_gitops/about-redhat-openshift-gitops
 :cnf-features-source-crs: https://github.com/openshift-kni/telco-reference/tree/release-4.20/telco-ran/configuration/source-crs
-:cnf-features-siteconfig-gen: https://github.com/openshift-kni/cnf-features-deploy/tree/release-4.20/ztp/siteconfig-generator
 :cnf-features-policy-gen: https://github.com/open-cluster-management-io/policy-generator-plugin
-:cnf-features-clustersgo: https://github.com/openshift-kni/cnf-features-deploy/blob/release-4.20/ztp/siteconfig-generator/siteConfig/clusterCRsV1.go
-:cnf-features-siteconfig-plugin: https://github.com/openshift-kni/cnf-features-deploy/tree/release-4.20/ztp/siteconfig-generator-kustomize-plugin
 :cnf-features-policygen-plugin: https://github.com/open-cluster-management-io/policy-generator-plugin
 :rhacm-governance-doc: https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.15/html/governance/governance
 :ocp-cli-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/cli_tools/openshift-cli-oc#cli-about-cli_cli-developer-commands
-:sno-preparing-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/installing_on_a_single_node/preparing-to-install-sno
 :sno-installing-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/installing_on_a_single_node/install-sno-installing-sno#install-sno-generating-the-discovery-iso-with-the-assisted-installer_install-sno-installing-sno-with-the-assisted-installer
-:sno-install-manually-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/installing_on_a_single_node/install-sno-installing-sno#install-sno-installing-sno-manually
-:talm-cluster-upgrades-doc: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/cnf-talm-for-cluster-updates
-:talm-upstream-project: https://github.com/openshift-kni/cluster-group-upgrades-operator
-:talm-recovery-from-failed-upgrade-doc: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-upgrade-for-single-node-openshift-clusters#ztp-image-based-upgrade-procedure-cancel_ztp-gitops
-:workload-hints-doc: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/cnf-understanding-low-latency
 :ztp-gitops-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/ztp-preparing-the-hub-cluster
 :nto-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/using-node-tuning-operator
 :sriov-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/networking/hardware-networks#about-sriov
 :sriov-supported-nics: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/networking/hardware-networks#supported-devices_about-sriov
-:workload-partitioning-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/enabling-workload-partitioning
 :advanced-ztp-policy-config: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/managing-cluster-policies-with-policygentemplate-resources#ztp-adding-new-content-to-gitops-ztp_ztp-advanced-policy-config
-:ztp-precaching-config-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/managing-cluster-policies-with-policygentemplate-resources#talm-prechache-user-specified-images-concept_ztp-talm
 :mirror-registry-link: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/disconnected_environments/mirroring-in-disconnected-environments#installing-mirroring-creating-registry
 :cluster-compare-tool-link: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/comparing-cluster-configurations
 :ssh-pub-key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC5pFKFLOuxrd9Q/TRu9sRtwGg2PV+kl2MHzBIGUhCcR0LuBJk62XG9tQWPQYTQ3ZUBKb6pRTqPXg+cDu5FmcpTwAKzqgUb6ArnjECxLJzJvWieBJ7k45QzhlZPeiN2Omik5bo7uM/P1YIo5pTUdVk5wJjaMOb7Xkcmbjc7r22xY54cce2Wb7B1QDtLWJkq++eJHSX2GlEjfxSlEvQzTN7m2N5pmoZtaXpLKcbOqtuSQSVKC4XPgb57hgEs/ZZy/LbGGHZyLAW5Tqfk1JCTFGm6Q+oOd3wAOF1SdUxM7frdrN3UOB12u/E6YuAx3fDvoNZvcrCYEpjkfrsjU91oz78aETZV43hOK9NWCOhdX5djA7G35/EMn1ifanVoHG34GwNuzMdkb7KdYQUztvsXIC792E2XzWfginFZha6kORngokZ2DwrzFj3wgvmVyNXyEOqhwi6LmlsYdKxEvUtiYhdISvh2Y9GPrFcJ5DanXe7NVAKXe5CyERjBnxWktqAPBzXJa36FKIlkeVF5G+NWgufC6ZWkDCD98VZDiPP9sSgqZF8bSR4l4/vxxAW4knKIZv11VX77Sa1qZOR9Ml12t5pNGT7wDlSOiDqr5EWsEexga/2s/t9itvfzhcWKt+k66jd8tdws2dw6+8JYJeiBbU63HBjxCX+vCVZASrNBjiXhFw==
-:sriov-channel: stable
 :cluster-logging-channel-ocp-release: stable-6.4
 :cluster-logging-channel-ocp-intermediate-release: stable-6.4
 :cluster-logging-channel-ocp-next-release: stable-6.4
 :ai-workflow: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/ztp-deploying-far-edge-sites#ztp-deploying-a-site_ztp-deploying-far-edge-sites
 :ibi-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-installation-for-single-node-openshift
-:talm-ibgu-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/edge_computing/image-based-upgrade-for-single-node-openshift-clusters#ztp-image-based-upgrade
 :core-rds-link: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/telco-core-ref-design-specs
 :core-rds-components: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/telco-core-ref-design-specs#telco-core-rds-components_telco-core
 :core-source-crs: https://github.com/openshift-kni/telco-reference/tree/release-4.20/telco-core/configuration/reference-crs
@@ -130,6 +98,5 @@ code:experimental:
 :nmstate-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/networking/kubernetes-nmstate
 :nrop-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/scalability_and_performance/scheduling-numa-aware-workloads
 :odf-docs: https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19/html/planning_your_deployment
-:cno-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/networking/cluster-network-operator
 :cert-manager-docs: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/security_and_compliance/cert-manager-operator-for-red-hat-openshift
 :last-update-date: 2026-03-17

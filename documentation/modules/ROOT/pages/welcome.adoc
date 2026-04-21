@@ -16,7 +16,7 @@ endif::[]
 ifeval::["{demo_environment}" != "true"]
 Since the second part requires a lab environment, we recommend ordering it before starting the first part to ensure it is ready when needed. If you are a Red Hat employee, you can order a pre-configured lab environment through the https://demo.redhat.com[Red Hat Demo Platform]. Please note that running this lab incurs a cost of approximately $56. When the lab is launched, by default you will have 12 hours to complete it before it is destroyed. The estimated total duration for completing the lab is approximately 12 hours, including 2 hours for provisioning, 5 hours for hands-on work, and a 5-hour buffer. If additional time is required, the duration can be manually extended up to a maximum of 24 hours.
 
-For users without access to the demo platform, an alternative guide for deploying the lab environment is available at xref:lab-environment.adoc[here].
+For users without access to the demo platform, an alternative guide for deploying the lab environment is available at xref:lab-environment-ansible.adoc[here].
 endif::[]
 
 [#showroom-intro]
