@@ -231,7 +231,7 @@ Rigorous testing of policies in a dedicated, isolated environment is an essentia
 
 This structure demonstrates a strategy for testing policies for an upcoming OpenShift release ({openshift-next-release}) against dedicated testing clusters before promoting them to the current ({openshift-release}) production fleet, ensuring future compatibility.
 
-1. Create the `common` testing PolicyGenerator for {openshift-release} SNOs:
+1. Create the `common` testing PolicyGenerator for {openshift-release} OpenShift Cluster:
 +
 [.console-input]
 [source,bash,subs="attributes+,+macros"]
